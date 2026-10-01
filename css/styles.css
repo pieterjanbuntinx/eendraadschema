@@ -1,6 +1,7 @@
 /* ROOT */
 
 :root {
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
   --selectPadding: 2;
   --paperPadding: 10px;
 
