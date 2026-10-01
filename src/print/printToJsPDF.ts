@@ -108,7 +108,7 @@ export function printPDF(
         );
 
         const scaledsvg =
-            `<svg width="${sizex * scale}" height="${sizey * scale}" viewBox="0 0 ${sizex} ${sizey}" xmlns="http://www.w3.org/2000/svg">` +
+            `<svg width="${sizex * scale}" height="${sizey * scale}" viewBox="0 0 ${sizex} ${sizey}" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">` +
             svg +
             "</svg>";
 
@@ -144,6 +144,10 @@ export function printPDF(
                 URL.revokeObjectURL(url);
                 canvas.remove();
             }
+        };
+        img.onerror = function () {
+            console.error("PDF: pagina kon niet omgezet worden naar een afbeelding", scaledsvg.slice(0, 500));
+            statuscallback.innerHTML = "Het genereren van de PDF is mislukt: een pagina kon niet omgezet worden naar een afbeelding.";
         };
         img.src = url;
     }
