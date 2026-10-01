@@ -232,9 +232,6 @@ export function printPDF(
             doc.setFont("helvetica", "bold");
             doc.setFontSize(fontSize);
 
-            doc.text("Getekend met https://eendraadschema.goethals-jacobs.be", 
-                     startx + 2, // Leave 2mm at the left of the drawn by text
-                     paperdetails.paperheight - paperdetails.paper_margin - (paperdetails.drawnby_box_height - textHeight) / 2 - textHeight / 6);
 
             let page = iter + 1;
             let maxpages = print_table.pages.length + sitplanprint.numpages;
