@@ -1,4 +1,5 @@
 export const changelog = [
+  { date: "2026-10-22", msg: "Nieuw element \"Omschakelaar\" met twee ingangen (kring en tweede bron) en een uitgang waaraan verbruikers gehangen kunnen worden." },
   { date: "2025-09-18", msg: "Eerste stapjes om symbolen toe te voegen aan het situatieschema die niet in het ééndraadschema zitten." },
   { date: "2025-08-22", msg: "Aftakdoos kan nu meerdere kinderen bevatten." },
   { date: "2025-08-19", msg: "Kring en Aansluiting kennen nu ook de bescherming \"zekeringscheider\"." },

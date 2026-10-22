@@ -31,6 +31,7 @@ import { Meerdere_verbruikers } from "./List_Item/Meerdere_verbruikers";
 import { Microgolfoven } from "./List_Item/Microgolfoven";
 import { Motor } from "./List_Item/Motor";
 import { Omvormer } from "./List_Item/Omvormer";
+import { Omschakelaar } from "./List_Item/Omschakelaar";
 import { Overspanningsbeveiliging } from "./List_Item/Overspanningsbeveiliging";
 import { Lichtcircuit } from "./List_Item/Schakelaars/Lichtcircuit";
 import { Schakelaars } from "./List_Item/Schakelaars/Schakelaars";
@@ -381,6 +382,7 @@ export class Hierarchical_List {
             case 'Media': tempval = new Media(this); break;
             case 'Microgolfoven': tempval = new Microgolfoven(this); break;
             case 'Motor': tempval = new Motor(this); break;
+            case 'Omschakelaar': tempval = new Omschakelaar(this); break;
             case 'Omvormer': tempval = new Omvormer(this); break;
             case 'Overspanningsbeveiliging': tempval = new Overspanningsbeveiliging(this); break;
             case 'Schakelaars': tempval = new Schakelaars(this); break;
@@ -666,7 +668,13 @@ export class Hierarchical_List {
                     if (this.active[i] && (this.data[i].parent == parent.id)) lastOrdinalInKring = i;
                 }
 
-                if ( (item.getType() == "Omvormer") && (item.props.inkring) ) {
+                if (item.getType() == "Omschakelaar") {
+
+                    // Twee ingangen: onderaan de kring (voeding), bovenaan de tweede bron
+                    mySVG.data += '<line x1="' + mySVG.xleft + '" x2="' + mySVG.xleft + '" y1="' + 0 + '" y2="' + (mySVG.yup-10+0.5) + '" stroke="black" />'
+                    mySVG.data += '<line x1="' + mySVG.xleft + '" x2="' + mySVG.xleft + '" y1="' + (mySVG.yup+10-0.5) + '" y2="' + (mySVG.yup + mySVG.ydown) + '" stroke="black" />'
+
+                } else if ( (item.getType() == "Omvormer") && (item.props.inkring) ) {
 
                     //if (myOrdinal < lastOrdinalInKring)
                     mySVG.data += '<line x1="' + mySVG.xleft + '" x2="' + mySVG.xleft + '" y1="' + 0 + '" y2="' + (mySVG.yup-5+0.5) + '" stroke="black" />'
@@ -698,6 +706,7 @@ export class Hierarchical_List {
                 let posx = mySVG.xleft+9;
                 let posy = mySVG.yup-5;
                 if ( (item.getType() == "Omvormer") && (item.props.inkring) ) posy -= 5;
+                if (item.getType() == "Omschakelaar") posy -= 10;
                 
                 mySVG.data +=
                   '<text x="' + (posx) + '" y="' + (posy) + '" ' +
@@ -1203,6 +1212,7 @@ export class Hierarchical_List {
                         break; 
 
                     case "Omvormer":
+                    case "Omschakelaar":
                         inSVG[elementCounter] = this.data[i].toSVG(); //Maak de tekening
                         this.tekenVerticaleLijnIndienKindVanKring(this.data[i] as Electro_Item,inSVG[elementCounter]);         
                         break;
@@ -1337,6 +1347,7 @@ export class Hierarchical_List {
                 if (parentItem != null && parentItem.getType() == "Kring") max_xright += 10; // Altijd 10 extra rechts voorzien voor uitstekende tekst/adressen
 
                 if (!(this.getElectroItemById(myParent) instanceof Omvormer) && 
+                    !(this.getElectroItemById(myParent) instanceof Omschakelaar) && 
                     !(this.getElectroItemById(myParent) instanceof Aftakdoos)) {
                     outSVG.xright = Math.max(max_xright,25); // foresee at least 25 at the right
                 } else {
