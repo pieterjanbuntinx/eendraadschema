@@ -120,6 +120,12 @@ export function normaliseerVorm(v: any): Vorm | null {
 
 const LETTERTYPE = 'Arial, Helvetica, sans-serif';
 
+function hexNaarRgb(hex: string): string {
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const n = parseInt(hex, 16);
+    return `rgb(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255})`;
+}
+
 function escapeXML(s: string): string {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
@@ -225,6 +231,9 @@ export function vormNaarSVG(v: Vorm): { svg: string, sizex: number, sizey: numbe
     }
 
     sizex = f(sizex); sizey = f(sizey);
+    // Kleuren als rgb(...) en niet als #rrggbb: de originele versie past bij het inladen alle "#..." in een SVG aan
+    // (om id-verwijzingen uniek te maken), waardoor hex-kleuren daar ongeldig zouden worden.
+    inhoud = inhoud.replace(/"#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})"/g, (_m, hex: string) => `"${hexNaarRgb(hex)}"`);
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${sizex}" height="${sizey}" viewBox="0 0 ${sizex} ${sizey}">${inhoud}</svg>`;
     return { svg, sizex, sizey };
 }

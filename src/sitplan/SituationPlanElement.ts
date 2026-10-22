@@ -537,5 +537,6 @@ export class SituationPlanElement {
         this.color = (typeof json.color === 'string' && json.color !== '') ? json.color : 'black';
 
         this.vorm = normaliseerVorm(json.vorm);
+        if (this.vorm != null && this.electroItemId == null) this.zetVorm(this.vorm); // SVG opnieuw opbouwen (bvb. oudere kleurnotatie)
     }
 }
