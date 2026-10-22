@@ -167,15 +167,8 @@ export class Omvormer extends Electro_Item {
         mySVG.data += (this.props.type_ingang == "DC" ? dcSymbool(26, yonder-17) : acSymbool(30, yonder));
         mySVG.data += (this.props.type_uitgang == "AC" ? acSymbool(64, yboven+18) : dcSymbool(62, yboven));
 
-        mySVG.data += this.addAddressToSVG(mySVG,height+10,15,(70-mySVG.xright)/2-1);
-
-        // Tekst onder het object
-        const details = this.detailsLinesToSVG(this.props.details, 21, mySVG.yup + mySVG.ydown + 8);
-        if (details.height > 0) {
-            mySVG.data += details.svg;
-            mySVG.ydown += details.height + 8;
-            mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
-        }
+        // Adres en tekst onder het object
+        mySVG.data += this.addAdresEnDetailsToSVG(mySVG, 46, 0);
 
         return(mySVG);
 

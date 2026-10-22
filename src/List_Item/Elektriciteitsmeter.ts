@@ -41,17 +41,7 @@ export class Elektriciteitsmeter extends Electro_Item {
         mySVG.data = (sitplan? "" : '<line x1="1" y1="25" x2="21" y2="25" stroke="black"></line>')
                    + '<use xlink:href="#elektriciteitsmeter" x="21" y="25"></use>';
         
-        let ytekst = 60;
-        if (!sitplan) {
-            const details = this.detailsLinesToSVG(this.props.details, 21, 58);
-            if (details.height > 0) {
-                mySVG.data += details.svg;
-                mySVG.ydown += details.height;
-                mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
-                ytekst += details.height;
-            }
-        }
-        mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,ytekst,15));
+        if (!sitplan) mySVG.data += this.addAdresEnDetailsToSVG(mySVG, 46);
 
         return(mySVG);
     }

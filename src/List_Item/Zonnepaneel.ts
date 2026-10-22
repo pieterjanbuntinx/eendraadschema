@@ -64,19 +64,11 @@ export class Zonnepaneel extends Electro_Item {
 
         mySVG.data += '<text x="45" y="9" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">' + htmlspecialchars(this.props.aantal) + 'x</text>';
             
-        // Adres helemaal onderaan plaatsen
-        let ytekst = 70;
+        // Adres en tekst onder het object
         if (!sitplan) {
             this.overrideKeys();
-            const details = this.detailsLinesToSVG(this.props.details, 21, 70);
-            if (details.height > 0) {
-                mySVG.data += details.svg;
-                mySVG.ydown += details.height;
-                mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
-                ytekst += details.height;
-            }
+            mySVG.data += this.addAdresEnDetailsToSVG(mySVG, 46);
         }
-        mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,ytekst,15));
 
         return(mySVG);
     }

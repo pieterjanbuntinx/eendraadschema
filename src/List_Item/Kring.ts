@@ -265,8 +265,8 @@ export class Kring extends Electro_Item {
 
         // Determine how much everything needs to be shifted right
         let shiftright = /*35*/25+20*cable_location_available;
-        if (this.props.naam.length>2) {
-            shiftright = Math.max(shiftright,svgTextWidth(htmlspecialchars(this.props.naam),12,'font-weight="bold"')+20); 
+        if ((this.props.naam ?? "").length>0) {
+            shiftright = Math.max(shiftright,svgTextWidth(htmlspecialchars(this.props.naam),12,'font-weight="bold"')+21); 
         }
         if ( (this.props.bescherming === "contact") && (this.props.sturing === "spoel") ) shiftright += 25;           
 
@@ -294,6 +294,14 @@ export class Kring extends Electro_Item {
         // Kabel tekenen
 
         if (this.props.kabel_is_aanwezig) { // Kabel aanwezig
+
+            // Indien het kabeltype niet naast de standaard kabellengte past, de kabel bovenaan wat verlengen
+            const kabelTekstBreedte = svgTextWidth(htmlspecialchars(this.props.type_kabel ?? ""), 10, '');
+            const verlenging = Math.max(0, kabelTekstBreedte - 74);
+            if (verlenging > 0) {
+                mySVG.data += '<line x1="' + mySVG.xleft + '" x2="' + mySVG.xleft + '" y1="' + mySVG.yup + '" y2="' + (mySVG.yup+verlenging) + '" stroke="black" />';
+                mySVG.yup += verlenging;
+            }
 
             // Kabel tekenen en naam van de kabel ernaast zetten
             mySVG.data += '<line x1="' + mySVG.xleft + '" x2="' + mySVG.xleft + '" y1="' + mySVG.yup + '" y2="' + (mySVG.yup+100) + '" stroke="black" />'

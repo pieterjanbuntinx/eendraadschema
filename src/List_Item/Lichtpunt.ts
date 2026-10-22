@@ -335,6 +335,12 @@ export class Lichtpunt extends Electro_Item {
                 // Verdere uitlijning en adres onderaan
                 mySVG.xright = 39;
                 mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,54,10,-1));
+
+                // Tekst bovenaan (aantal, halfwaterdicht): alles 5px zakken zodat de tekst niet tegen het element erboven komt
+                if ( (print_str_upper != "") && (!sitplan) ) {
+                    mySVG.data = '<g transform="translate(0,5)">' + mySVG.data + '</g>';
+                    mySVG.yup += 5;
+                }
                 break;
         }
 

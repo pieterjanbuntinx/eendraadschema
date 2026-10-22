@@ -329,13 +329,46 @@ export class Electro_Item extends List_Item {
 
   // -- Code to add the addressline below when drawing SVG. This is called by most derived classes --
 
+  /** Zorgt dat een tekst die op x=21 begint (of daarrond gecentreerd staat) niet in het volgende element loopt. */
+  protected verbreedVoorTekst(mySVG: SVGelement, tekst: string, options: string = '') {
+    if (tekst == null || /^\s*$/.test(tekst)) return;
+    mySVG.xright = Math.max(mySVG.xright, 20 + svgTextWidth(htmlspecialchars(tekst), 10, options));
+  }
+
   addAddressToSVG(mySVG: SVGelement, starty:number = 60, godown:number = 15, shiftx:number = 0): String {
     let returnstr:string = "";
-    if (!(/^\s*$/.test(this.props.adres))) { //check if adres contains only white space
+    if (!(/^\s*$/.test(this.props.adres ?? ""))) { //check if adres contains only white space
       returnstr = '<text x="' + ((mySVG.xright-20)/2 + 21 + shiftx) + '" y="' + starty + '" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-style="italic">' + htmlspecialchars(this.props.adres) + '</text>';
       mySVG.ydown = mySVG.ydown + godown;
+      this.verbreedVoorTekst(mySVG, this.props.adres, 'font-style="italic"');
     }
     return returnstr;
+  }
+
+  /**
+   * Plaatst onder het symbool eerst het adres (cursief, gecentreerd rond xcenter) en daaronder
+   * de lijnen van props.details (gescheiden door "|"), links uitgelijnd. Elke lijn neemt 15px in.
+   */
+  addAdresEnDetailsToSVG(mySVG: SVGelement, xcenter: number, extraNaDetails: number = 5, xdetails: number = 20): string {
+    let svg = "";
+    let y = mySVG.yup + mySVG.ydown + 10;
+    if (!(/^\s*$/.test(this.props.adres ?? ""))) {
+      svg += `<text x="${xcenter}" y="${y}" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-style="italic">${htmlspecialchars(this.props.adres)}</text>`;
+      this.verbreedVoorTekst(mySVG, this.props.adres, 'font-style="italic"');
+      mySVG.ydown += 15;
+      y += 15;
+    }
+    const details = this.props.details;
+    if (details != null && !(/^\s*$/.test(details))) {
+      for (const lijn of String(details).split("|")) {
+        svg += `<text x="${xdetails}" y="${y}" style="text-anchor:start" font-family="Arial, Helvetica, sans-serif" font-size="10">${htmlspecialchars(lijn)}</text>`;
+        mySVG.xright = Math.max(mySVG.xright, xdetails + svgTextWidth(htmlspecialchars(lijn), 10, ''));
+        mySVG.ydown += 15;
+        y += 15;
+      }
+      mySVG.ydown += extraNaDetails;
+    }
+    return svg;
   }
 
   // -- Make the SVG for the electro item, placeholder for derived classes --

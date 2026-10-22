@@ -58,17 +58,7 @@ export class Batterij extends Electro_Item {
         }
 
         
-        let ytekst = 55;
-        if (!sitplan) {
-            const details = this.detailsLinesToSVG(this.props.details ?? "", 21, 55);
-            if (details.height > 0) {
-                mySVG.data += details.svg;
-                mySVG.ydown += details.height;
-                mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
-                ytekst += details.height;
-            }
-        }
-        mySVG.data += (sitplan? "": this.addAddressToSVG(mySVG,ytekst,10));
+        if (!sitplan) mySVG.data += this.addAdresEnDetailsToSVG(mySVG, 46);
 
         return(mySVG);
     }

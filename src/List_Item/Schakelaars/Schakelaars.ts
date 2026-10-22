@@ -301,7 +301,9 @@ export class Schakelaars extends Electro_Item {
             lowerbound += 5;
         }
             
-        mySVG.data += (sitplan? '' : this.addAddressToSVG(mySVG,25+lowerbound,Math.max(0,lowerbound-20)));
+        // Adres steeds minstens 2px lager dan de onderkant van een eenvoudige schakelaar
+        const adresbound = Math.max(lowerbound, 22);
+        mySVG.data += (sitplan? '' : this.addAddressToSVG(mySVG,25+adresbound,Math.max(0,adresbound-20)));
 
         return(mySVG);
     }

@@ -569,17 +569,10 @@ export class Aansluiting extends Electro_Item {
         mySVG.yup += 25;
         mySVG.ydown = 25;
 
-        // Tekst onder de teller (meerdere lijnen gescheiden door "|")
+        // Adres en tekst onder de teller (meerdere lijnen gescheiden door "|")
         if (metTeller) {
-            const details = this.detailsLinesToSVG(this.props.details, 21+extrashift, mySVG.yup+mySVG.ydown+10);
-            if (details.height > 0) {
-                mySVG.data += details.svg;
-                mySVG.ydown += details.height + 2;
-            }
-        }
-
-        // Indien adres niet leeg is, plaats het onderaan
-        if (!(/^\s*$/.test(this.props.adres))) { //check if adres contains only white space
+            mySVG.data += this.addAdresEnDetailsToSVG(mySVG, 41+extrashift, 5, 20+extrashift);
+        } else if (!(/^\s*$/.test(this.props.adres ?? ""))) {
             mySVG.data += '<text x="' + (41+extrashift) + '" y="' + (mySVG.yup+mySVG.ydown+10) 
                        + '" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-style="italic">' 
                        + htmlspecialchars(this.props.adres) + '</text>';
