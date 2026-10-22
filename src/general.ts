@@ -35,6 +35,20 @@ export const isFirefox = (function () {
   };
 })();
 
+let meetContext: CanvasRenderingContext2D | null = null;
+function meetCanvas(): CanvasRenderingContext2D | null {
+  if (meetContext == null) meetContext = document.createElement('canvas').getContext('2d');
+  return meetContext;
+}
+
+/** Zet HTML-entiteiten (&amp; &lt; ...) terug om naar gewone tekst. */
+function decodeerHTML(s: string): string {
+  if (!/[&]/.test(s)) return s;
+  const ta = document.createElement('textarea');
+  ta.innerHTML = s;
+  return ta.value;
+}
+
 export const svgTextWidth = (() => {
   const cache: Record<string, number> = {};
 
@@ -44,14 +58,18 @@ export const svgTextWidth = (() => {
       return cache[key];
     }
 
-    const div = document.createElement('div');
-    // Meten gebeurt met het lettertype van de pagina (Verdana), zoals in de originele versie. Verdana is iets breder dan
-    // Arial, waardoor er steeds voldoende ruimte voorzien wordt en de berekende breedtes in het bestand identiek zijn.
-    div.innerHTML = `<svg width="1000" height="20"><text x="0" y="10" style="text-anchor:start" font-family="Verdana, Geneva, Tahoma, sans-serif" font-size="${fontsize}" ${options}>${input}</text></svg>`;
-
-    document.body.appendChild(div);
-    const width = (div.children[0].children[0] as SVGGraphicsElement).getBBox().width;
-    document.body.removeChild(div);
+    // Meten gebeurt met het lettertype van de pagina (Verdana) via een canvas, zoals in de originele versie.
+    // Zo zijn de berekende breedtes (en dus ook de bewaarde bestanden) identiek.
+    const ctx = meetCanvas();
+    let width: number;
+    if (ctx != null) {
+      const vet = /font-weight\s*=\s*"?bold/i.test(options) ? 'bold ' : '';
+      const cursief = /font-style\s*=\s*"?italic/i.test(options) ? 'italic ' : '';
+      ctx.font = `${cursief}${vet}${fontsize}px Verdana, Geneva, Tahoma, sans-serif`;
+      width = ctx.measureText(decodeerHTML(input)).width;
+    } else {
+      width = String(input).length * fontsize * 0.6;
+    }
 
     cache[key] = Math.ceil(width);
     return cache[key];
