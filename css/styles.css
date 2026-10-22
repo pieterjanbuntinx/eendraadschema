@@ -690,3 +690,12 @@ table {
 .vorm-tabel td { padding: 3px 6px; }
 .vorm-tabel input[type=number] { width: 80px; }
 .vorm-knoppen { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }
+
+/* -- Statusbalk in een gekoppeld venster -- */
+ul#minitabs li.gekoppeld-balk {
+  margin-left: 24px; padding: 4px 12px; border-radius: 6px;
+  background: #dbeeff; border: 1px solid #8ab8e6; color: #1d4f7a;
+  font-weight: normal; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+ul#minitabs li.gekoppeld-balk.verbroken { background: #fff1d6; border-color: #e0b050; color: #6b4a00; }
+ul#minitabs li.gekoppeld-balk a.gekoppeld-sluit { margin-left: 10px; color: inherit; text-decoration: underline; cursor: pointer; font-weight: normal; }

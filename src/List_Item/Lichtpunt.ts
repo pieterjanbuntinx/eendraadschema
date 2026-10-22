@@ -338,7 +338,9 @@ export class Lichtpunt extends Electro_Item {
 
                 // Tekst bovenaan (aantal, halfwaterdicht): alles 5px zakken zodat de tekst niet tegen het element erboven komt
                 if ( (print_str_upper != "") && (!sitplan) ) {
-                    mySVG.data = '<g transform="translate(0,5)">' + mySVG.data + '</g>';
+                    // Geneste svg (geen <g transform>) want de tekening wordt nadien "platgeslagen" en die kent enkel x/y van svg-elementen
+                    mySVG.data = `<svg xmlns="http://www.w3.org/2000/svg" x="0" y="5" width="${mySVG.xleft + mySVG.xright}" height="${mySVG.yup + mySVG.ydown}" overflow="visible">`
+                               + mySVG.data + '</svg>';
                     mySVG.yup += 5;
                 }
                 break;

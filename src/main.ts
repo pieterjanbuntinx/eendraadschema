@@ -22,7 +22,7 @@ import { MultiLevelStorage } from "./storage/MultiLevelStorage";
 import { undoRedo } from "./undoRedo";
 import { importExportUsingFileAPI } from "./importExport/importExport";
 import { changelog } from "./changelog";
-import { startVensterSync, gevraagdeWeergave, haalStatusOp, openInNieuwVenster } from "./VensterSync";
+import { startVensterSync, gevraagdeWeergave, haalStatusOp, openInNieuwVenster, bijKoppelStatus, hoofdvensterOpen } from "./VensterSync";
 import { boomToolbarHTML, compactPaneelHTML, installeerKolomScheiding } from "./TreeUI";
 
 import "../css/all.css";
@@ -741,7 +741,33 @@ menuItems = [
 
 PROP_edit_menu(menuItems);
 
+// In een gekoppeld venster tonen we enkel de gevraagde weergave, zodat duidelijk is dat dit een apart venster is
+const gekoppeldeWeergave = gevraagdeWeergave();
+globalThis.GEKOPPELD_VENSTER = (gekoppeldeWeergave != null);
+if (gekoppeldeWeergave != null) {
+    const naam = (gekoppeldeWeergave === 'draw' ? 'Situatieschema' : 'Eéndraadschema');
+    menuItems = menuItems.filter(m => m.name === naam);
+}
+
 globalThis.topMenu = new TopMenu('minitabs', 'menu-item', menuItems);
+
+if (gekoppeldeWeergave != null) {
+    const ul = document.getElementById('minitabs');
+    const li = document.createElement('li');
+    li.className = 'gekoppeld-balk';
+    ul?.appendChild(li);
+    const toonKoppelStatus = () => {
+        const open = hoofdvensterOpen();
+        li.classList.toggle('verbroken', !open);
+        li.innerHTML = open
+            ? '🔗 <b>Gekoppeld venster</b> &ndash; wijzigingen worden live gedeeld met het hoofdvenster. ' +
+              '<a class="gekoppeld-sluit" onclick="window.close()">Venster sluiten</a>'
+            : '⚠ <b>Hoofdvenster gesloten</b> &ndash; dit venster wordt niet meer bijgewerkt. Wijzigingen hier worden enkel in de browsercache bewaard. ' +
+              '<a class="gekoppeld-sluit" onclick="window.close()">Venster sluiten</a>';
+    };
+    bijKoppelStatus(toonKoppelStatus);
+    toonKoppelStatus();
+}
 
 // Now add handlers for everything that changes in the left column
 const left_col_inner = document.querySelector('#left_col_inner');

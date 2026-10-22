@@ -66,6 +66,7 @@ export class TopMenu {
     public selectMenuItemByOrdinal(nr: number) {
         // Remove 'current' ID from all <a> elements
         const items = this.ulElement.querySelectorAll('a');
+        if (items[nr] == null) return; // bvb. in een gekoppeld venster met maar één menu-item
         items.forEach(item => item.removeAttribute('id'));
 
         this.selectItem(items[nr]);

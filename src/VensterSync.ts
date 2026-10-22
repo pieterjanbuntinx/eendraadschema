@@ -16,6 +16,18 @@ const vensterId = Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 let kanaal: BroadcastChannel | null = null;
 const anderen = new Set<string>();
+let opgenerId: string | null = null; // het venster waarvan een gekoppeld venster zijn schema kreeg
+let statusLuisteraar: (() => void) | null = null;
+
+/** Laat weten wanneer de verbinding met het hoofdvenster wijzigt (voor de statusbalk van een gekoppeld venster). */
+export function bijKoppelStatus(cb: () => void) { statusLuisteraar = cb; }
+
+/** Is het venster dat dit gekoppelde venster opende nog open? */
+export function hoofdvensterOpen(): boolean {
+    return (opgenerId != null) ? anderen.has(opgenerId) : anderen.size > 0;
+}
+
+function meldStatus() { if (statusLuisteraar) statusLuisteraar(); }
 let bezigMetOntvangen = false;
 let zendTimer: number | null = null;
 let wachtOpStatus: ((ok: boolean) => void) | null = null;
@@ -149,10 +161,11 @@ export function startVensterSync() {
                 zend({ soort: 'aanwezig', aan: b.van });
                 break;
             case 'aanwezig':
-                if (b.aan === vensterId) anderen.add(b.van);
+                if (b.aan === vensterId) { anderen.add(b.van); meldStatus(); }
                 break;
             case 'weg':
                 anderen.delete(b.van);
+                meldStatus();
                 break;
             case 'vraagStatus':
                 anderen.add(b.van);
@@ -168,6 +181,8 @@ export function startVensterSync() {
                 laatsteTekst = b.tekst;
                 if (wachtOpStatus != null) {
                     // Eerste toestand voor een nieuw geopend venster
+                    opgenerId = b.van;
+                    meldStatus();
                     const klaar = wachtOpStatus;
                     wachtOpStatus = null;
                     bezigMetOntvangen = true;
@@ -185,7 +200,10 @@ export function startVensterSync() {
         }
     };
 
-    window.addEventListener('beforeunload', () => zend({ soort: 'weg' }));
+    let wegGemeld = false;
+    const meldWeg = () => { if (!wegGemeld) { wegGemeld = true; zend({ soort: 'weg' }); } };
+    window.addEventListener('pagehide', meldWeg);
+    window.addEventListener('beforeunload', meldWeg);
     zend({ soort: 'hallo' });
 }
 

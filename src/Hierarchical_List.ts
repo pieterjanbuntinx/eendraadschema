@@ -773,7 +773,7 @@ export class Hierarchical_List {
         }
         output += '</p>';
 
-        output += `<span style="display: inline-block; width: 20px;"></span>
+        if (!globalThis.GEKOPPELD_VENSTER) output += `<span style="display: inline-block; width: 20px;"></span>
             <div class="icon" onclick="openInNieuwVenster('draw')" title="Open het situatieschema in een apart venster. Wijzigingen worden in beide vensters bijgewerkt.">
                 <span class="icon-image" style="font-size:24px">🗗</span>
                 <span class="icon-text">Situatieschema<br>apart venster</span>
