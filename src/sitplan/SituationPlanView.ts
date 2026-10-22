@@ -152,6 +152,12 @@ export class SituationPlanView {
         const soort = this.tekenGereedschap;
         const start = this.muisNaarPapier(e);
 
+        if (soort === 'tekst') {
+            this.kiesTekenGereedschap(null);
+            this.voegTekstToe(start.x, start.y);
+            return;
+        }
+
         this.verwijderTekenVoorbeeld();
         const ns = 'http://www.w3.org/2000/svg';
         const svg = document.createElementNS(ns, 'svg') as SVGSVGElement;
@@ -213,12 +219,51 @@ export class SituationPlanView {
         return element;
     }
 
+    /** Plaatst een nieuw tekstvak met de linkerbovenhoek op (x, y) en opent meteen het bewerkvenster. */
+    voegTekstToe(x: number, y: number) {
+        const vorm = nieuweVorm('tekst', 1, 1);
+        const element = new SituationPlanElement();
+        element.setVars({ page: this.sitplan.activePage, posx: x, posy: y, labelfontsize: this.sitplan.defaults.fontsize, rotate: 0, movable: true });
+        element.setscale(1);
+        element.setAdres('manueel', '', 'rechts');
+        element.zetVorm(vorm);
+        // Linkerbovenhoek op de klikpositie houden, ook als de tekst groter of kleiner wordt
+        const plaats = () => { element.posx = x + element.sizex / 2; element.posy = y + element.sizey / 2; };
+        plaats();
+        this.sitplan.addElement(element);
+        this.clearSelection();
+        this.redraw();
+        if (element.boxref) this.selectOneBox(element.boxref);
+        this.unattachArrowKeys();
+        toonVormEigenschappen(vorm, 0, (v, r) => {
+            element.zetVorm(v); element.rotate = r; plaats();
+            this.updateBoxContent(element); this.updateSymbolAndLabelPosition(element);
+        }, (ok, v, r) => {
+            this.attachArrowKeys();
+            if (ok && (v.tekst ?? '').trim() !== '') {
+                element.zetVorm(v); element.rotate = r; plaats();
+                this.updateBoxContent(element); this.updateSymbolAndLabelPosition(element);
+                globalThis.undostruct.store();
+            } else {
+                // Geannuleerd of lege tekst: element terug weghalen
+                this.clearSelection();
+                if (element.boxref) element.boxref.remove();
+                if (element.boxlabelref) element.boxlabelref.remove();
+                this.sitplan.removeElement(element);
+                this.sideBar.render();
+            }
+        });
+    }
+
     /** Open het venster om een getekende vorm te bewerken. */
     private bewerkVorm(element: SituationPlanElement, cancelCallback?: () => void) {
         if (element.vorm == null) return;
         this.unattachArrowKeys();
+        // Bij tekst blijft de linkerbovenhoek op zijn plaats wanneer de tekst langer of korter wordt
+        const links = element.posx - element.sizex / 2, boven = element.posy - element.sizey / 2;
         const toon = (v: Vorm, rotatie: number) => {
             element.zetVorm(v);
+            if (v.soort === 'tekst') { element.posx = links + element.sizex / 2; element.posy = boven + element.sizey / 2; }
             element.rotate = rotatie;
             this.updateBoxContent(element);
             this.updateSymbolAndLabelPosition(element);
@@ -1714,11 +1759,12 @@ export class SituationPlanView {
             lijn: '<svg width="26" height="26" viewBox="0 0 26 26"><line x1="3" y1="22" x2="23" y2="4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
             rechthoek: '<svg width="26" height="26" viewBox="0 0 26 26"><rect x="3" y="6" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
             ellips: '<svg width="26" height="26" viewBox="0 0 26 26"><ellipse cx="13" cy="13" rx="10" ry="7.5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
+            tekst: '<svg width="26" height="26" viewBox="0 0 26 26"><text x="13" y="21" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="currentColor">T</text></svg>',
         };
-        for (const soort of ['lijn', 'rechthoek', 'ellips'] as VormSoort[]) {
+        for (const soort of ['lijn', 'rechthoek', 'ellips', 'tekst'] as VormSoort[]) {
             outputleft += `
             <div class="icon teken-icon${this.tekenGereedschap === soort ? ' actief' : ''}" id="button_teken_${soort}"
-                 title="${VORM_LABELS[soort]} tekenen: klik en sleep op het blad. Shift = ${soort === 'lijn' ? 'loodrecht/45°' : (soort === 'rechthoek' ? 'vierkant' : 'cirkel')}, Ctrl = meerdere na elkaar, Esc = stoppen. Dubbelklik op een vorm om te bewerken.">
+                 title="${soort === 'tekst' ? 'Vrije tekst: klik op het blad waar de tekst moet komen. Dubbelklik op een tekst om te bewerken.' : `${VORM_LABELS[soort]} tekenen: klik en sleep op het blad. Shift = ${soort === 'lijn' ? 'loodrecht/45°' : (soort === 'rechthoek' ? 'vierkant' : 'cirkel')}, Ctrl = meerdere na elkaar, Esc = stoppen. Dubbelklik op een vorm om te bewerken.`}">
                 <span class="icon-image">${tekenIconen[soort]}</span>
                 <span class="icon-text">${VORM_LABELS[soort]}</span>
             </div>`;
@@ -1882,7 +1928,7 @@ export class SituationPlanView {
         this.attachAddElectroItemButton(document.getElementById('button_Add_electroItem'));
         this.attachAddCustomItemButton(document.getElementById('button_Add_customItem'));
         this.attachDeleteButton(document.getElementById('button_Delete'));
-        for (const soort of ['lijn', 'rechthoek', 'ellips'] as VormSoort[]) {
+        for (const soort of ['lijn', 'rechthoek', 'ellips', 'tekst'] as VormSoort[]) {
             const knop = document.getElementById('button_teken_' + soort);
             if (knop) knop.onclick = () => this.kiesTekenGereedschap(soort);
         }
