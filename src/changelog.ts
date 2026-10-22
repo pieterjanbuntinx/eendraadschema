@@ -1,4 +1,5 @@
 export const changelog = [
+  { date: "2026-10-22", msg: "Situatieschema: zijbalk \"Snel toevoegen\" om symbolen per kring of borden met één klik toe te voegen, pijltjes om van pagina te wisselen, en scrollen met het muiswiel boven de kring- of paginakeuze." },
   { date: "2026-10-22", msg: "Opmaak verbeterd: adres eerst en daaronder de tekst bij zonnepaneel, batterij, elektriciteitsmeter, omvormer en aansluiting; lange adressen schuiven het volgende element op; lichtpunten met aantal/halfwaterdicht krijgen extra ruimte; kabel wordt verlengd bij een lang kabeltype; ruimte voor lange kringnamen." },
   { date: "2026-10-22", msg: "Nieuwe bediening links: element-picker met categorieën, knop '⋯' per element (verschuiven, elders in het schema hangen, dupliceren), compacte weergave met eigenschappenpaneel, alles in- of uitklappen en een versleepbare kolombreedte." },
   { date: "2026-10-22", msg: "Nieuwe symbolen Detector, Modulaire schakelaar en Klemmenstrook. Draaischakelaar, vertraagde opening, schakelaar in verdeelbord, aansluiting zonder teller, omvormer met vrije AC/DC-keuze, tekst onder diverse objecten en meer." },

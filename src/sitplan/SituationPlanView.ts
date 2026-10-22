@@ -1,7 +1,7 @@
 import { SituationPlan } from "./SituationPlan";
 import { SituationPlanElement } from "./SituationPlanElement";
 import { AdresType, AdresLocation } from "./SituationPlanElement";
-import { SituationPlanView_SideBar } from "./SituationPlanView_SideBar";
+import { SituationPlanView_SideBar, koppelScrollwielAanSelect } from "./SituationPlanView_SideBar";
 import { SituationPlanView_Selected } from "./SituationPlanView_Selected";
 import { SituationPlanView_ChooseCustomElementPopup } from "./SituationPlanView_ChooseCustomElementPopup";
 import { ContextMenu } from "./ContextMenu";
@@ -1604,14 +1604,17 @@ export class SituationPlanView {
             <span style="display: inline-block; width: 50px;"></span>
             <div>
                 <center>
-                    <span style="display: inline-block; white-space: nowrap;">Pagina
-                        <select id="id_sitplanpage">`;
+                    <span style="display: inline-block; white-space: nowrap;">
+                        <button id="btn_sitplan_prevpage" class="sp-pagepijl" title="Vorige pagina (PgUp)" ${(this.sitplan.activePage <= 1 ? ' disabled' : '')}>&#9664;</button>
+                        Pagina
+                        <select id="id_sitplanpage" title="Tip: scroll met het muiswiel om van pagina te wisselen">`;
         for (let i = 1; i <= this.sitplan.numPages; i++) {
             outputleft += '<option value="' + i + '"' + (i == this.sitplan.activePage ? ' selected' : '') + '>' + i + '</option>';
         }
 
         outputleft += `
                         </select>
+                        <button id="btn_sitplan_nextpage" class="sp-pagepijl" title="Volgende pagina (PgDn)" ${(this.sitplan.activePage >= this.sitplan.numPages ? ' disabled' : '')}>&#9654;</button>
                     </span><br><span style="display: inline-block; white-space: nowrap;">
                         <button id="btn_sitplan_addpage" ${(this.sitplan.activePage != this.sitplan.numPages ? ' disabled' : '')}>Nieuw</button>
                         <button id="btn_sitplan_delpage" style="background-color:red;" ${(this.sitplan.numPages <= 1 ? ' disabled' : '')}>&#9851;</button>
@@ -1650,6 +1653,17 @@ export class SituationPlanView {
             this.selectPage(Number(target.value));
             globalThis.undostruct.store("changePage");
         };
+
+        koppelScrollwielAanSelect(document.getElementById('id_sitplanpage') as HTMLSelectElement);
+
+        const gaNaarPagina = (pagina: number) => {
+            this.contextMenu.hide();
+            if (pagina < 1 || pagina > this.sitplan.numPages || pagina == this.sitplan.activePage) return;
+            this.selectPage(pagina);
+            globalThis.undostruct.store("changePage");
+        };
+        document.getElementById('btn_sitplan_prevpage')!.onclick = () => gaNaarPagina(this.sitplan.activePage - 1);
+        document.getElementById('btn_sitplan_nextpage')!.onclick = () => gaNaarPagina(this.sitplan.activePage + 1);
 
         document.getElementById('btn_sitplan_addpage')!.onclick = () => {
             this.contextMenu.hide();
