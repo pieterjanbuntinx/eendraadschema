@@ -32,6 +32,7 @@ import { Microgolfoven } from "./List_Item/Microgolfoven";
 import { Motor } from "./List_Item/Motor";
 import { Omvormer } from "./List_Item/Omvormer";
 import { Omschakelaar } from "./List_Item/Omschakelaar";
+import { TreeUI, vernieuwCompactPaneel } from "./TreeUI";
 import { Detector } from "./List_Item/Detector";
 import { Modulaire_schakelaar } from "./List_Item/Modulaire_schakelaar";
 import { Klemmenstrook } from "./List_Item/Klemmenstrook";
@@ -806,6 +807,23 @@ export class Hierarchical_List {
     // -- Functie om de tree links te tekenen te starten by node met id = myParent --
 
     toHTMLinner(ordinal: number) {
+        if (TreeUI.isCompact()) {
+            const id = this.data[ordinal].id;
+            const item = this.data[ordinal] as Electro_Item;
+            const sel = (TreeUI.geselecteerd === id) ? ' eds-row-selected' : '';
+            const header = `<div class="eds-row-head${sel}" onclick="HLSelectRow(event,${id})">${item.toHTMLHeader(this.mode)}</div>`;
+            if (this.data[ordinal].collapsed) {
+                return(`<tr>
+                            <td bgcolor="#8AB2E4" onclick="HLCollapseExpand(${id})" valign= "top">&#x229E;</td>
+                            <td width="100%">${header}</td>
+                        </tr>`);
+            } else {
+                return(`<tr>
+                           <td bgcolor="C0C0C0" onclick="HLCollapseExpand(${id})" valign= "top">&#x229F;</td>
+                           <td width="100%">${header}${this.toHTML(this.id[ordinal])}</td>
+                        </tr>`);
+            }
+        }
         if (this.data[ordinal].collapsed) {
             return(`<tr>
                         <td bgcolor="#8AB2E4" onclick="HLCollapseExpand(${this.data[ordinal].id})" valign= "top">&#x229E;</td>
@@ -824,7 +842,9 @@ export class Hierarchical_List {
         if (ordinal === null) return; // If id is not found, do nothing
 
         let div = document.getElementById('id_elem_'+id) as HTMLElement;
+        if (div == null) return;
         div.innerHTML = this.toHTMLinner(ordinal);
+        vernieuwCompactPaneel();
     }
 
     voegAttributenToeAlsNodigEnReSort() {

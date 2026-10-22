@@ -22,6 +22,7 @@ import { MultiLevelStorage } from "./storage/MultiLevelStorage";
 import { undoRedo } from "./undoRedo";
 import { importExportUsingFileAPI } from "./importExport/importExport";
 import { changelog } from "./changelog";
+import { boomToolbarHTML, compactPaneelHTML, installeerKolomScheiding } from "./TreeUI";
 
 import "../css/all.css";
 
@@ -362,13 +363,14 @@ globalThis.HLRedrawTreeHTML = () => {
     globalThis.toggleAppView('2col');
     const settings = document.getElementById("settings");
     if (settings !== null) settings.innerHTML = "";
-    var output:string = globalThis.structure.toHTML(0) + "<br>" + renderAddressStacked();
+    var output:string = boomToolbarHTML() + globalThis.structure.toHTML(0) + compactPaneelHTML() + "<br>" + renderAddressStacked();
     const left_col_inner = document.getElementById("left_col_inner");
     if (left_col_inner !== null) left_col_inner.innerHTML = output;
+    installeerKolomScheiding();
 }
 
 globalThis.HLRedrawTreeHTMLLight = () => {
-    var output:string = globalThis.structure.toHTML(0) + "<br>" + renderAddressStacked();
+    var output:string = boomToolbarHTML() + globalThis.structure.toHTML(0) + compactPaneelHTML() + "<br>" + renderAddressStacked();
     const left_col_inner = document.getElementById("left_col_inner");
     if (left_col_inner !== null) left_col_inner.innerHTML = output;
 }

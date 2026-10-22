@@ -5,6 +5,7 @@ import { SVGelement } from "../SVGelement";
 import { Hierarchical_List } from "../Hierarchical_List";
 import { SituationPlanElement } from "../sitplan/SituationPlanElement";
 import { trimString } from "../general";
+import { TreeUI, typeLabelHTML } from "../TreeUI";
 
 export class Electro_Item extends List_Item {
 
@@ -191,29 +192,39 @@ export class Electro_Item extends List_Item {
       if (this.checkInsertSibling()) {
         output += `<button class="button-lightblue" onclick="HLClone(${this.id})">Clone</button>`;
       }
-    } else {
+    } else if (!TreeUI.isCompact() || TreeUI.geselecteerd === this.id) {
       if (this.checkInsertSibling()) {
-        output += `<button class="button-insertBefore" onclick="HLInsertBefore(${this.id})"></button>`;
-        output += `<button class="button-insertAfter" onclick="HLInsertAfter(${this.id})"></button>`;
+        output += `<button class="button-insertBefore" title="Element hierboven invoegen (zelfde niveau)" onclick="HLInsertBefore(${this.id})"></button>`;
+        output += `<button class="button-insertAfter" title="Element hieronder invoegen (zelfde niveau)" onclick="HLInsertAfter(${this.id})"></button>`;
       }
       if (this.checkInsertChild()) {
-        output +=  `<button class="button-insertChild" onclick="HLInsertChild(${this.id})"></button>`;
+        output +=  `<button class="button-insertChild" title="Afhankelijk element toevoegen (niveau dieper)" onclick="HLInsertChild(${this.id})"></button>`;
       }
     };
-    output += `<button class="button-delete-garbage-can" onclick="HLDelete(${this.id})"></button>`;
+    if ( (mode == "move") || !TreeUI.isCompact() || TreeUI.geselecteerd === this.id ) {
+      output += `<button class="button-delete-garbage-can" title="Element verwijderen" onclick="HLDelete(${this.id})"></button>`;
+    }
     output += "&nbsp;"
 
-    let parent:Electro_Item = this.getParent();
-    let consumerArray: Array<string>;
-    
-    if (parent == null) consumerArray = ["", "Aansluiting", "Zekering/differentieel", "Kring"];
-    else consumerArray = this.getParent().allowedChilds()
-
-    //output += '<div class="type-orange">';
-    output += this.selectPropToHTML('type', consumerArray, 175);
-    //output += '</div>';
+    output += typeLabelHTML(this);
 
     return(output);
+  }
+
+  // -- Naam van het element zoals getoond in de boom, bijvoorbeeld "Kring A" of "Contactdoos A.3" --
+
+  getTypeLabel(): string {
+    const type = this.getType();
+    if (type == null || type === "") return "";
+    let adres = "";
+    if (["Kring", "Bord", "Aansluiting"].includes(type)) {
+      adres = trimString(this.props.naam ?? "");
+    } else if (["Splitsing", "Klemmenstrook", "Zekering/differentieel", "Vrije ruimte"].includes(type)) {
+      adres = "";
+    } else {
+      try { adres = trimString(this.getReadableAdres() ?? ""); } catch (e) { adres = ""; }
+    }
+    return (adres === "" ? type : `${type} ${htmlspecialchars(adres)}`);
   }
 
   // -- Displays the Expand button for the Electro_item, in case the item is expandable --

@@ -1,4 +1,6 @@
 export const changelog = [
+  { date: "2026-10-22", msg: "Nieuwe bediening links: element-picker met categorieën, knop '⋯' per element (verschuiven, elders in het schema hangen, dupliceren), compacte weergave met eigenschappenpaneel, alles in- of uitklappen en een versleepbare kolombreedte." },
+  { date: "2026-10-22", msg: "Nieuwe symbolen Detector, Modulaire schakelaar en Klemmenstrook. Draaischakelaar, vertraagde opening, schakelaar in verdeelbord, aansluiting zonder teller, omvormer met vrije AC/DC-keuze, tekst onder diverse objecten en meer." },
   { date: "2026-10-22", msg: "Nieuw element \"Omschakelaar\" met twee ingangen (kring en tweede bron) en een uitgang waaraan verbruikers gehangen kunnen worden." },
   { date: "2025-09-18", msg: "Eerste stapjes om symbolen toe te voegen aan het situatieschema die niet in het ééndraadschema zitten." },
   { date: "2025-08-22", msg: "Aftakdoos kan nu meerdere kinderen bevatten." },
