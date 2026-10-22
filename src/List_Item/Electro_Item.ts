@@ -7,11 +7,26 @@ import { SituationPlanElement } from "../sitplan/SituationPlanElement";
 import { trimString } from "../general";
 import { TreeUI, typeLabelHTML } from "../TreeUI";
 
+/** Elementen waarvan de tekening door het adres breder werd, met hun oorspronkelijke breedte (xright). */
+const adresVerbreding = new WeakMap<object, number>();
+
 export class Electro_Item extends List_Item {
 
   constructor(mylist: Hierarchical_List) { // This is legacy but we will live with it for now until we completely removed the key-concept
     super(mylist);
     this.resetProps(); // In Javascript, this calls the derived classes
+
+    // Elke tekening loopt via verwerkAdresVerbreding: wanneer het adres breder is dan het symbool wordt het symbool
+    // gecentreerd boven het adres geplaatst (zie addAddressToSVG). Niet-opsombaar zodat dit nooit mee bewaard wordt.
+    const origineel = this.toSVG;
+    Object.defineProperty(this, 'toSVG', {
+      enumerable: false, configurable: true, writable: true,
+      value: (...args: any[]) => {
+        adresVerbreding.delete(this);
+        const svg = (origineel as any).apply(this, args);
+        return this.verwerkAdresVerbreding(svg, args[0] === true);
+      }
+    });
   }
 
   // -- Lees oude legacy keys (enkel voor EDS versies 001 en 002) --
@@ -340,9 +355,32 @@ export class Electro_Item extends List_Item {
     if (!(/^\s*$/.test(this.props.adres ?? ""))) { //check if adres contains only white space
       returnstr = '<text x="' + ((mySVG.xright-20)/2 + 21 + shiftx) + '" y="' + starty + '" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-style="italic">' + htmlspecialchars(this.props.adres) + '</text>';
       mySVG.ydown = mySVG.ydown + godown;
+      const oudeBreedte = mySVG.xright;
       this.verbreedVoorTekst(mySVG, this.props.adres, 'font-style="italic"');
+      if (mySVG.xright > oudeBreedte) adresVerbreding.set(this, oudeBreedte);
     }
     return returnstr;
+  }
+
+  /**
+   * Indien het adres het element breder maakte, wordt de tekening (symbool + adres) met de helft van die extra breedte
+   * naar rechts geschoven, zodat de tekst niet links uitsteekt. Een lijn links verbindt met de kring; heeft het element
+   * nog verbruikers achter zich, dan loopt ook rechts een lijn door.
+   */
+  verwerkAdresVerbreding(mySVG: SVGelement, sitplan: boolean): SVGelement {
+    const oud = adresVerbreding.get(this);
+    adresVerbreding.delete(this);
+    if (sitplan || oud == null || mySVG == null) return mySVG;
+    const verschil = mySVG.xright - oud;
+    if (!(verschil > 0)) return mySVG;
+    const shift = verschil / 2;
+    const y = mySVG.yup;
+    const breedte = mySVG.xleft + oud + 1;
+    let data = `<line x1="1" y1="${y}" x2="${shift + 1}" y2="${y}" stroke="black" />`
+             + `<svg x="${shift}" y="0" width="${breedte}" height="${mySVG.yup + mySVG.ydown}">${mySVG.data}</svg>`;
+    if (this.heeftVerbruikerAlsKind()) data += `<line x1="${shift + breedte}" y1="${y}" x2="${mySVG.xright + 2}" y2="${y}" stroke="black" />`;
+    mySVG.data = data;
+    return mySVG;
   }
 
   /**

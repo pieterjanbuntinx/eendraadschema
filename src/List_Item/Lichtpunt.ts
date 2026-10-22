@@ -297,23 +297,29 @@ export class Lichtpunt extends Electro_Item {
                 break;
                 
             default: //Normaal lichtpunt (kruisje)
+                // Tekst bovenaan (aantal, halfwaterdicht): alles 5px lager tekenen zodat de tekst niet tegen het element erboven komt
+                const dy = ( (print_str_upper != "") && (!sitplan) ) ? 5 : 0;
+                if (dy > 0) {
+                    mySVG.data = mySVG.data.replace('y1="25" y2="25"', `y1="${25+dy}" y2="${25+dy}"`);
+                    mySVG.yup += dy;
+                }
                 
                 switch (this.props.type_noodverlichting) {
                     case "Centraal":
                         SVGSymbols.addSymbol('lamp');
-                        mySVG.data += '<use xlink:href="#lamp" x="' + 30 + '" y="25" />'
-                                   +  '<circle cx="30" cy="25" r="5" style="stroke:black;fill:black" />';
-                        if ( (this.heeftVerbruikerAlsKind()) && (!sitplan) ) mySVG.data += '<line x1="'+30+'" y1="25" x2="'+(30+11)+'" y2="25" stroke="black" />';
+                        mySVG.data += '<use xlink:href="#lamp" x="' + 30 + '" y="' + (25+dy) + '" />'
+                                   +  '<circle cx="30" cy="' + (25+dy) + '" r="5" style="stroke:black;fill:black" />';
+                        if ( (this.heeftVerbruikerAlsKind()) && (!sitplan) ) mySVG.data += '<line x1="'+30+'" y1="'+(25+dy)+'" x2="'+(30+11)+'" y2="'+(25+dy)+'" stroke="black" />';
                         break;
                     case "Decentraal":
                         SVGSymbols.addSymbol('noodlamp_decentraal');
-                        mySVG.data += '<use xlink:href="#noodlamp_decentraal" x="' + 30 + '" y="25" />';
-                        if (this.props.heeft_ingebouwde_schakelaar) mySVG.data += '<line x1="37" y1="18" x2="40" y2="15" stroke="black" stroke-width="2" />'; //Ingebouwde schakelaar
+                        mySVG.data += '<use xlink:href="#noodlamp_decentraal" x="' + 30 + '" y="' + (25+dy) + '" />';
+                        if (this.props.heeft_ingebouwde_schakelaar) mySVG.data += '<line x1="37" y1="' + (18+dy) + '" x2="40" y2="' + (15+dy) + '" stroke="black" stroke-width="2" />'; //Ingebouwde schakelaar
                         break;
                     default:
                         SVGSymbols.addSymbol('lamp');
-                        mySVG.data += '<use xlink:href="#lamp" x="' + 30 + '" y="25" />';
-                        if ( (this.heeftVerbruikerAlsKind()) && (!sitplan) ) mySVG.data += '<line x1="'+30+'" y1="25" x2="'+(30+11)+'" y2="25" stroke="black" />';
+                        mySVG.data += '<use xlink:href="#lamp" x="' + 30 + '" y="' + (25+dy) + '" />';
+                        if ( (this.heeftVerbruikerAlsKind()) && (!sitplan) ) mySVG.data += '<line x1="'+30+'" y1="'+(25+dy)+'" x2="'+(30+11)+'" y2="'+(25+dy)+'" stroke="black" />';
                         break;
                 }
 
@@ -321,28 +327,21 @@ export class Lichtpunt extends Electro_Item {
                 if (print_str_upper != "") {
                     let textoptions = 'style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10"';
                     if (mirrortext == false)
-                        mySVG.data += `<text x="30" y="10" ${textoptions}>${htmlspecialchars(print_str_upper)}</text>`;
+                        mySVG.data += `<text x="30" y="${10+dy}" ${textoptions}>${htmlspecialchars(print_str_upper)}</text>`;
                     else
-                        mySVG.data += `<text transform="scale(-1,1) translate(-60,0)" x="30" y="10" ${textoptions}>${htmlspecialchars(print_str_upper)}</text>`;
+                        mySVG.data += `<text transform="scale(-1,1) translate(-60,0)" x="30" y="${10+dy}" ${textoptions}>${htmlspecialchars(print_str_upper)}</text>`;
                 }
                 
                 // Teken wandlamp indien van toepassing
-                if (this.props.is_wandlamp) mySVG.data += '<line x1="20" y1="40" x2="40" y2="40" stroke="black" />';
+                if (this.props.is_wandlamp) mySVG.data += '<line x1="20" y1="' + (40+dy) + '" x2="40" y2="' + (40+dy) + '" stroke="black" />';
                 
                 // Teken ingebouwde schakelaar indien van toepassing
-                if (this.props.heeft_ingebouwde_schakelaar) mySVG.data += '<line x1="40" y1="15" x2="45" y2="20" stroke="black" stroke-width="2" />';
+                if (this.props.heeft_ingebouwde_schakelaar) mySVG.data += '<line x1="40" y1="' + (15+dy) + '" x2="45" y2="' + (20+dy) + '" stroke="black" stroke-width="2" />';
                 
                 // Verdere uitlijning en adres onderaan
                 mySVG.xright = 39;
-                mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,54,10,-1));
+                mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,54+dy,10,-1));
 
-                // Tekst bovenaan (aantal, halfwaterdicht): alles 5px zakken zodat de tekst niet tegen het element erboven komt
-                if ( (print_str_upper != "") && (!sitplan) ) {
-                    // Geneste svg (geen <g transform>) want de tekening wordt nadien "platgeslagen" en die kent enkel x/y van svg-elementen
-                    mySVG.data = `<svg xmlns="http://www.w3.org/2000/svg" x="0" y="5" width="${mySVG.xleft + mySVG.xright}" height="${mySVG.yup + mySVG.ydown}" overflow="visible">`
-                               + mySVG.data + '</svg>';
-                    mySVG.yup += 5;
-                }
                 break;
         }
 
