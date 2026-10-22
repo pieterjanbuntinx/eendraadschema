@@ -37,6 +37,7 @@ export class Aansluiting extends Electro_Item {
     resetProps() {
         this.clearProps();
         this.props.type = "Aansluiting";
+        this.props.met_teller = true;
         this.props.aantal_polen = "2";
         this.props.bescherming = "differentieel";
         this.props.amperage = "40";
@@ -53,7 +54,6 @@ export class Aansluiting extends Electro_Item {
         this.props.fase = '';
         this.props.normaalGesloten = false;
         this.props.newPage = false;
-        this.props.met_teller = true;
         this.props.kabel_locatie = "N/A";
         this.props.kabel_is_in_buis = false;
         this.props.details = "";

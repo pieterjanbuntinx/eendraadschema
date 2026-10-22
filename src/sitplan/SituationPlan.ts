@@ -334,7 +334,7 @@ export class SituationPlan {
                     }
 
                     let str = element.getAdres();
-                    svgstr += `<text x="${element.labelposx}" y="${element.labelposy}" font-size="${fontsize}" fill="black" text-anchor="middle" dominant-baseline="middle">${htmlspecialchars(str)}</text>`
+                    svgstr += `<text x="${element.labelposx}" y="${element.labelposy}" font-size="${fontsize}" fill="${element.heeftKleur() ? element.color : 'black'}" text-anchor="middle" dominant-baseline="middle">${htmlspecialchars(str)}</text>`
                 }
             }
 

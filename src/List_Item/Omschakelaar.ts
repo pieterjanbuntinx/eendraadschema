@@ -22,8 +22,8 @@ export class Omschakelaar extends Electro_Item {
     resetProps() {
         this.clearProps();
         this.props.type = "Omschakelaar";
-        this.props.details = "Omschakelaar";
         this.props.adres = "";
+        this.props.details = "Omschakelaar";
     }
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
@@ -53,14 +53,14 @@ export class Omschakelaar extends Electro_Item {
 
     /** Tekent het schakelsymbool in een kader dat links begint op x0 en verticaal gecentreerd is rond yc. */
     private switchSymbol(x0: number, yc: number): string {
-        const cUp   = { x: x0 + 13, y: yc - 10 };  // contact tweede bron
-        const cDown = { x: x0 + 13, y: yc + 10 };  // contact voeding uit de kring
+        const cUp   = { x: x0 + 13, y: yc - 5 };   // contact tweede bron
+        const cDown = { x: x0 + 13, y: yc + 5 };   // contact voeding uit de kring
         const pivot = { x: x0 + 37, y: yc };       // gemeenschappelijk contact = uitgang
         let s = '';
         s += `<line x1="${x0}" y1="${cUp.y}" x2="${cUp.x}" y2="${cUp.y}" stroke="black" />`;
         s += `<line x1="${x0}" y1="${cDown.y}" x2="${cDown.x}" y2="${cDown.y}" stroke="black" />`;
         s += `<line x1="${pivot.x}" y1="${pivot.y}" x2="${x0 + 50}" y2="${pivot.y}" stroke="black" />`;
-        s += `<line x1="${pivot.x}" y1="${pivot.y}" x2="${cDown.x + 3}" y2="${cDown.y - 3}" stroke="black" stroke-width="1.5" />`;
+        s += `<line x1="${pivot.x}" y1="${pivot.y}" x2="${cDown.x + 3}" y2="${cDown.y - 1}" stroke="black" stroke-width="1.5" />`;
         for (const p of [cUp, cDown, pivot]) s += `<circle cx="${p.x}" cy="${p.y}" r="2" fill="black" />`;
         return s;
     }
@@ -102,26 +102,17 @@ export class Omschakelaar extends Electro_Item {
         mySVG.xright += 70;
 
         // Ingangen links (vanaf de kringlijn)
-        mySVG.data += `<line x1="1" x2="21" y1="${yc-10}" y2="${yc-10}" stroke="black" />`
-                   +  `<line x1="1" x2="21" y1="${yc+10}" y2="${yc+10}" stroke="black" />`;
+        mySVG.data += `<line x1="1" x2="21" y1="${yc-5}" y2="${yc-5}" stroke="black" />`
+                   +  `<line x1="1" x2="21" y1="${yc+5}" y2="${yc+5}" stroke="black" />`;
 
         // Kader (even hoog als de kinderen, minstens 40) en schakelsymbool
         const rectHeight = Math.max(40, height - 10);
         mySVG.data += `<rect x="21" y="${yc-rectHeight/2}" width="50" height="${rectHeight}" stroke="black" stroke-width="2" fill="white" />`;
         mySVG.data += this.switchSymbol(21, yc);
 
-        // Tekst onder het kader
-        let below = yc + rectHeight/2;
-        if (trimString(this.props.details ?? "") !== "") {
-            below += 12;
-            mySVG.data += `<text x="46" y="${below}" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">${text}</text>`;
-            mySVG.xright = Math.max(mySVG.xright, 46 + svgTextWidth(text, 10, '')/2 + 2);
-        }
-        if (!(/^\s*$/.test(this.props.adres ?? ""))) {
-            below += 12;
-            mySVG.data += `<text x="46" y="${below}" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10" font-style="italic">${htmlspecialchars(this.props.adres)}</text>`;
-        }
-        mySVG.ydown = Math.max(mySVG.ydown, below - yc + 4);
+        // Adres en tekst onder het kader (zelfde regels als bij de andere objecten met tekst eronder)
+        mySVG.ydown = yc;
+        mySVG.data += this.addAdresEnDetailsToSVG(mySVG, 46, 0);
 
         return(mySVG);
     }

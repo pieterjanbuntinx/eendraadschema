@@ -14,6 +14,7 @@ type PrintTable = {
 
 type Properties = {
     dpi?: number;
+    orientation?: string;
     control: string;
     owner: string;
     installer: string;
@@ -37,29 +38,32 @@ export function printPDF(
     statuscallback: StatusCallback,         // Via deze functie wordt de voortgang doorgegeven aan een oproepend element (doorgaans GUI)
     sitplanprint: SitPlanPrint              // Informatie over het situatieschema
 ): void {
-    let paperdetails: any;
-
-    if (print_table.papersize === "A3") {
-        paperdetails = { // All sizes in millimeters
-            paperwidth: 420,
-            paperheight: 297,
-            paper_margin: 10,
-            svg_padding: 5, //minimal size to keep below svg before the text boxes start
-            drawnby_box_height: 5,
+    /**
+     * Afmetingen (in mm) van de pagina en het titelblok onderaan.
+     * Het ééndraadschema kan liggend of staand afgedrukt worden, het situatieschema altijd liggend.
+     */
+    function maakPapier(staand: boolean): any {
+        const A3 = (print_table.papersize === "A3");
+        const lang = A3 ? 420 : 297, kort = A3 ? 297 : 210;
+        const paperwidth = staand ? kort : lang;
+        const paperheight = staand ? lang : kort;
+        const paper_margin = 10;
+        // Het titelblok is maximaal 277mm breed (zoals op liggend A4); op een smallere pagina vult het de volledige breedte
+        const blokbreedte = Math.min(277, paperwidth - 2 * paper_margin);
+        const owner_box_width = (blokbreedte >= 277 ? 80 : Math.floor(blokbreedte * 0.285));
+        return {
+            staand, paperwidth, paperheight, paper_margin,
+            // Op staand A4 is de ruimte krap: geen extra marge boven het titelblok en een iets lagere onderste balk
+            svg_padding: (staand && !A3) ? 0 : 5, //minimal size to keep below svg before the text boxes start
+            drawnby_box_height: (staand && !A3) ? 4 : 5,
             owner_box_height: 30,
-            owner_box_width: 80,
-        };
-    } else {
-        paperdetails = { // All sizes in millimeters
-            paperwidth: 297,
-            paperheight: 210,
-            paper_margin: 10,
-            svg_padding: 5, //minimal size to keep below svg before the text boxes start
-            drawnby_box_height: 5,
-            owner_box_height: 30,
-            owner_box_width: 80,
+            owner_box_width,
+            blokbreedte,
         };
     }
+
+    const edsStaand = (properties.orientation === 'portrait');
+    let paperdetails: any = maakPapier(edsStaand);
 
     let pages: (number | null)[];
     const totalPages = print_table.pages.length + sitplanprint.numpages;
@@ -152,7 +156,7 @@ export function printPDF(
         img.src = url;
     }
 
-    function htmlToPDFlines(doc: any, html: string): string[] {
+    function htmlToPDFlines(doc: any, html: string, breedte: number = paperdetails.owner_box_width - 2 * 2 - 3): string[] {
         function htmlToUnicode(html: string): string {
             const tempElement = document.createElement("div");
             tempElement.innerHTML = html;
@@ -165,22 +169,28 @@ export function printPDF(
         for (let line of lines) {
             let wrappedlines = doc.splitTextToSize(
                 line,
-                paperdetails.owner_box_width - 2 * 2 - 3
+                breedte
             );
             printlines = printlines.concat(wrappedlines);
         }
         return printlines;
     }
 
+    /** Papier voor een bepaalde pagina (index in de volledige lijst, 0-gebaseerd) */
+    function papierVoorPagina(iter: number) {
+        return maakPapier(iter < print_table.pages.length ? edsStaand : false);
+    }
+
     function init() {
         const { jsPDF } = window.jspdf;
-        let doc: any;
-        if (print_table.papersize === "A3") {
-            doc = new jsPDF("landscape", "mm", "a3", true);
-        } else {
-            doc = new jsPDF("landscape", "mm", "a4", true);
-        }
-        return doc;
+        const eerste = pages.findIndex((page) => page !== null);
+        paperdetails = papierVoorPagina(Math.max(0, eerste));
+        return new jsPDF(paperdetails.staand ? "portrait" : "landscape", "mm", (print_table.papersize === "A3" ? "a3" : "a4"), true);
+    }
+
+    function nieuwePagina(doc: any, iter: number) {
+        paperdetails = papierVoorPagina(iter);
+        doc.addPage((print_table.papersize === "A3" ? "a3" : "a4"), paperdetails.staand ? "portrait" : "landscape");
     }
 
     function addPage(doc: any, svg: string, sizex: number, sizey: number, callback: (doc: any, iter: number) => void, iter = 0) {
@@ -207,7 +217,7 @@ export function printPDF(
                 creator: "eendraadschema.goethals-jacobs.be",
             });
 
-            let startx = paperdetails.paperwidth - (297 - paperdetails.paper_margin); //In "A4" we fill everything, in A3 we squeeze to the right
+            let startx = paperdetails.paperwidth - paperdetails.paper_margin - paperdetails.blokbreedte; // Titelblok rechts onderaan
 
             doc.rect(startx, // Drawn by box below
                      paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height,
@@ -230,7 +240,10 @@ export function printPDF(
                      paperdetails.paperwidth - paperdetails.paper_margin - startx - 3 * paperdetails.owner_box_width,
                      paperdetails.drawnby_box_height + paperdetails.owner_box_height);
 
-            const fontSize = 8;
+            const smal = (paperdetails.owner_box_width < 80); // smal titelblok, bvb. staand A4
+            const fontSize = smal ? 7 : 8;
+            const laatsteBreedte = paperdetails.paperwidth - paperdetails.paper_margin - startx - 3 * paperdetails.owner_box_width - 2 * 2 - 3;
+            const y0 = paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height;
             const textHeight = fontSize * 0.352778; // 1 point = 0.352778 mm
 
             doc.setFont("helvetica", "bold");
@@ -250,31 +263,38 @@ export function printPDF(
                      startx + 3 * paperdetails.owner_box_width + 2, //Leave 2mm at the left 
                      paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight * (1 + 1.2) + 1.5);
             
-            doc.text(htmlToPDFlines(doc, "Erkend Organisme"), 
+            const kop1 = htmlToPDFlines(doc, "Erkend Organisme");
+            const kop2 = htmlToPDFlines(doc, "Plaats van de elektrische installatie");
+            const kop3 = htmlToPDFlines(doc, "Installateur");
+            // Inhoud begint onder de (eventueel over meerdere lijnen gesplitste) titel van het vak
+            const inhoudY = (kop: string[]) => y0 - textHeight / 6 + textHeight * (1 + 1.2 * kop.length) + 1.5;
+            const maxLijnen = Math.max(1, Math.floor((paperdetails.owner_box_height - 2) / (textHeight * 1.2)));
+
+            doc.text(kop1, 
                      startx + 2,
                      paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight + 1.5);
 
-            doc.text(htmlToPDFlines(doc, "Plaats van de elektrische installatie"), 
+            doc.text(kop2, 
                      startx + paperdetails.owner_box_width + 2, 
                      paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight + 1.5);
 
-            doc.text(htmlToPDFlines(doc, "Installateur"), 
+            doc.text(kop3, 
                      startx + 2 * paperdetails.owner_box_width + 2, 
                      paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight + 1.5);
 
             doc.setFont("helvetica", "normal");
 
-            doc.text(htmlToPDFlines(doc, properties.control).slice(0, 8),
+            doc.text(htmlToPDFlines(doc, properties.control).slice(0, Math.min(8, maxLijnen - kop1.length)),
                                     startx + 2 + 3,
-                                    paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight * (1 + 1.2) + 1.5);
+                                    inhoudY(kop1));
 
-            doc.text(htmlToPDFlines(doc, properties.owner).slice(0, 8), 
+            doc.text(htmlToPDFlines(doc, properties.owner).slice(0, Math.min(8, maxLijnen - kop2.length)), 
                      startx + paperdetails.owner_box_width + 2 + 3, 
-                     paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight * (1 + 1.2) + 1.5);
+                     inhoudY(kop2));
 
-            doc.text(htmlToPDFlines(doc, properties.installer).slice(0, 8), 
+            doc.text(htmlToPDFlines(doc, properties.installer).slice(0, Math.min(8, maxLijnen - kop3.length)), 
                      startx + 2 * paperdetails.owner_box_width + 2 + 3, 
-                     paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight * (1 + 1.2) + 1.5);
+                     inhoudY(kop3));
 
             let info : string = (iter < print_table.pages.length ? 
                                     print_table.pages[iter].info || properties.info || "" :
@@ -282,8 +302,8 @@ export function printPDF(
                                              
             let infoshorter = info.replace("https://www.eendraadschema.goethals-jacobs.be", "eendraadschema");
 
-            doc.text(htmlToPDFlines(doc, infoshorter).slice(0, 8), 
-                     startx + 3 * paperdetails.owner_box_width + 2 + 3,
+            doc.text(htmlToPDFlines(doc, infoshorter, smal ? laatsteBreedte + 3 : undefined).slice(0, 8), 
+                     startx + 3 * paperdetails.owner_box_width + 2 + (smal ? 0 : 3),
                      paperdetails.paperheight - paperdetails.paper_margin - paperdetails.drawnby_box_height - paperdetails.owner_box_height - textHeight / 6 + textHeight * (1 + 3 * 1.2) + 1.5);
 
             callback(doc, iter + 1);
@@ -320,7 +340,7 @@ export function printPDF(
             } else {
                 statuscallback.innerHTML = "Pagina " + pages[iter] + " wordt gegenereerd. Even geduld..";
 
-                if (!firstpage) doc.addPage();
+                if (!firstpage) nieuwePagina(doc, iter);
 
                 let sizex = print_table.pages[pages[iter] - 1].stop - print_table.pages[pages[iter] - 1].start;
                 let sizey = print_table.stopy - print_table.starty;
@@ -333,7 +353,7 @@ export function printPDF(
             } else {
                 statuscallback.innerHTML = "Pagina " + (iter + 1) + " wordt gegenereerd. Even geduld..";
 
-                if (!firstpage) doc.addPage();
+                if (!firstpage) nieuwePagina(doc, iter);
 
                 let toprint = sitplanprint.pages[iter - print_table.pages.length];
                 addPage(doc, toprint.svg, toprint.sizex, toprint.sizey, nextpage, iter);

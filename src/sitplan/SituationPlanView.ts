@@ -645,6 +645,8 @@ export class SituationPlanView {
         };
 
         if (boxlabel != null) {
+            const labelKleur = sitPlanElement.heeftKleur() ? sitPlanElement.color : '';
+            if (boxlabel.style.color != labelKleur) boxlabel.style.color = labelKleur;
             let adres = sitPlanElement.getAdres();
             if (sitPlanElement.labelfontsize != null) boxlabel.style.fontSize = String(sitPlanElement.labelfontsize) + 'px';
             let newadres = (adres != null ? htmlspecialchars(adres) : '');
@@ -1559,6 +1561,7 @@ export class SituationPlanView {
                 adrestype, adres, adreslocation, labelfontsize,
                 scale, rotate);
             if (element != null) {
+                if (typeof options.color === 'string' && options.color !== '') element.color = options.color;
                 this.syncToSitPlan();
                 this.clearSelection();
                 this.redraw();
@@ -1583,9 +1586,9 @@ export class SituationPlanView {
                 /* no element selected */
                 null,
                 /* OK button callback */
-                (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate) => {
+                (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate, color) => {
                     this.attachArrowKeys();
-                    this.addElectroItem(electroid, adrestype as AdresType, adres, adreslocation as AdresLocation, labelfontsize, scale, rotate);
+                    this.addElectroItem(electroid, adrestype as AdresType, adres, adreslocation as AdresLocation, labelfontsize, scale, rotate, null, null, { undoStore: true, color });
                 },
                 /* Cancel button callback */
                 () => {
@@ -1630,12 +1633,13 @@ export class SituationPlanView {
 
             SituationPlanView_ElementPropertiesPopup(sitPlanElement,
                 /* OK button callback */
-                (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate) => {
+                (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate, color) => {
                     this.attachArrowKeys();
                     if (electroid != null) {
                         sitPlanElement.setElectroItemId(electroid);
                         sitPlanElement.setAdres(adrestype, adres, adreslocation);
                     }
+                    if (color != null && color !== sitPlanElement.color) { sitPlanElement.color = color; sitPlanElement.needsViewUpdate = true; }
                     sitPlanElement.labelfontsize = labelfontsize;
                     sitPlanElement.setscale(scale);
                     sitPlanElement.rotate = rotate;

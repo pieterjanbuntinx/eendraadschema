@@ -20,9 +20,9 @@ export class Detector extends Electro_Item {
     resetProps() {
         this.clearProps();
         this.props.type = "Detector";
-        this.props.detectortype = "Rookdetector";
         this.props.aantal = "1";
         this.props.adres = "";
+        this.props.detectortype = "Rookdetector";
     }
 
     overrideKeys() {

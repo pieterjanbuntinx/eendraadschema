@@ -326,6 +326,7 @@ function json_to_structure(text: string, oldstruct: Hierarchical_List = null, ve
         if (typeof mystructure.properties.installer != "undefined") outstruct.properties.installer = mystructure.properties.installer;
         if (typeof mystructure.properties.info != "undefined") outstruct.properties.info = mystructure.properties.info;
         if (typeof mystructure.properties.info != "undefined") outstruct.properties.dpi = mystructure.properties.dpi;
+        if (mystructure.properties.orientation === 'portrait' || mystructure.properties.orientation === 'landscape') outstruct.properties.orientation = mystructure.properties.orientation;
         if (typeof mystructure.properties.currentView != "undefined") outstruct.properties.currentView = mystructure.properties.currentView;
         if (typeof mystructure.properties.disableEDSCompression != "undefined") outstruct.properties.disableEDSCompression = mystructure.properties.disableEDSCompression;        
         if (typeof mystructure.properties.legacySchakelaars != "undefined") 

@@ -35,13 +35,15 @@ export class Transformator extends Electro_Item {
         SVGSymbols.addSymbol('transformator');
 
         mySVG.xleft = 1; // foresee at least some space for the conductor
-        mySVG.xright = 47;
+        mySVG.xright = 53;
         mySVG.yup = 25;
         mySVG.ydown = 25;
 
-        mySVG.data = (sitplan? "" : '<line x1="1" y1="25" x2="21" y2="25" stroke="black"></line>')
-                   + '<use xlink:href="#transformator" x="21" y="25"></use>'
-                   + '<text x="35" y="44" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">' +
+        // Toevoerlijn links, symbool, en een kort aansluitlijntje rechts
+        mySVG.data = (sitplan? "" : '<line x1="1" y1="25" x2="24" y2="25" stroke="black"></line>')
+                   + '<use xlink:href="#transformator" x="24" y="25"></use>'
+                   + (sitplan? "" : '<line x1="52" y1="25" x2="55" y2="25" stroke="black"></line>')
+                   + '<text x="38" y="44" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">' +
                       htmlspecialchars(this.props.voltage) + "</text>";
         
         mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,58,15));

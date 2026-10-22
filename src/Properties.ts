@@ -5,6 +5,7 @@ export class Properties {
   control: string;
   info: string;
   dpi: number;
+  orientation: 'landscape' | 'portrait'; // oriëntatie van de ééndraadschema-pagina's bij printen (situatieschema blijft liggend)
   currentView: string;
   disableEDSCompression: boolean; // true als we de EDS niet mogen comprimeren, false als we het mogen comprimeren
   legacySchakelaars: boolean | null; // true als we geisoleerde schakelaars met een streepje moeten tekenen, null als we het moeten vragen
@@ -15,6 +16,7 @@ export class Properties {
     this.installer = "idem";
     this.control = "";
     this.dpi = 300;
+    this.orientation = 'landscape';
     this.info = "1 x 230V + N ~50 Hz";
     this.currentView = 'config';
     this.legacySchakelaars = null;

@@ -96,9 +96,9 @@ export class SituationPlanView_SideBar {
         view.unattachArrowKeys?.();
         SituationPlanView_ElementPropertiesPopup(
             null,
-            (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate) => {
+            (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate, color) => {
                 view.attachArrowKeys?.();
-                view.addElectroItem(electroid, adrestype as any, adres, adreslocation as any, labelfontsize, scale, rotate);
+                view.addElectroItem(electroid, adrestype as any, adres, adreslocation as any, labelfontsize, scale, rotate, null, null, { undoStore: true, color });
             },
             () => { view.attachArrowKeys?.(); });
         const input = document.getElementById('electroItemIdInput') as HTMLInputElement | null;

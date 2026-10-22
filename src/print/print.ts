@@ -130,6 +130,7 @@ export function printsvg() {
             +   '<button id="button_pdfdownload">Genereer PDF</button>&nbsp;'
             +   '<span id="select_papersize"></span>&nbsp;'
             +   '<span id="select_dpi"></span>&nbsp;'
+            +   '<span id="select_orientation"></span>&nbsp;'
             +   '<input id="dopdfname" size="20" value="eendraadschema_print.pdf">&nbsp;'
             +   '<span id="progress_pdf"></span>' // Area where status of pdf generation can be displayed
             + '</div>'
@@ -141,6 +142,7 @@ export function printsvg() {
 
     globalThis.structure.print_table.insertHTMLselectPaperSize(document.getElementById('select_papersize') as HTMLElement, printsvg);
     globalThis.structure.print_table.insertHTMLselectdpi(document.getElementById('select_dpi') as HTMLElement, printsvg);
+    globalThis.structure.print_table.insertHTMLselectOrientation(document.getElementById('select_orientation') as HTMLElement, printsvg);
 
     // Insert page range selector
     globalThis.structure.print_table.insertHTMLselectPageRange(document.getElementById('select_page_range') as HTMLElement, printsvg);

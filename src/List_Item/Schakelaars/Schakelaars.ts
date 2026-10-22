@@ -29,11 +29,11 @@ export class Schakelaars extends Electro_Item {
         this.props.adres = "";           // Set Adres/tekst to "" when the item is cleared
         this.props.heeft_signalisatielampje = false;        // Per default geen signalisatielampje
         this.props.is_halfwaterdicht = false;        // Per default niet halfwaterdicht
+        this.props.vertraagde_opening = false;
         this.props.heeft_verklikkerlampje = false;        // Per default geen verklikkerslampje
         this.props.is_trekschakelaar = false;        // Per default geen trekschakelaar
         this.props.normaalGesloten = false;
         this.props.sturing = "";
-        this.props.vertraagde_opening = false;
         this.props.in_verdeelbord = false;
     }
 

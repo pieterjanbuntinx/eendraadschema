@@ -57,6 +57,23 @@ export class SituationPlanElement {
     // -- Een vlag voor verplaatsbaarheid
     public movable = true;
 
+    // -- Kleur van het symbool en het label (zwart = standaard)
+    public color: string = 'black';
+
+    /** Is een afwijkende kleur ingesteld? */
+    public heeftKleur(): boolean {
+        return (this.color != null) && !(/^(black|#000|#000000)$/i.test(this.color));
+    }
+
+    /** Vervangt zwart in een SVG door de gekozen kleur (ook tekst en vormen zonder expliciete kleur). */
+    public kleurSVG(svg: string): string {
+        if (!this.heeftKleur() || svg == null) return svg;
+        const c = this.color;
+        return svg
+            .replace(/(stroke|fill|color)\s*=\s*"(black|#000000|#000)"/gi, `$1="${c}"`)
+            .replace(/(stroke|fill|color)\s*:\s*(black|#000000|#000)\b/gi, `$1:${c}`);
+    }
+
     // -- Getekende vorm (lijn, rechthoek, ellips) indien van toepassing; de svg wordt hieruit gegenereerd
     public vorm: Vorm | null = null;
 
@@ -337,13 +354,15 @@ export class SituationPlanElement {
            
             transform = `transform="rotate(${rotate} ${this.posx} ${this.posy})${(spiegel ? ` scale(-1,1) translate(${-this.posx * 2} 0)` : '')}"`;
 
+            const kleur = (this.heeftKleur() && this.isEendraadschemaSymbool());
             return `<g ${transform}>
-                    <svg ${posinfo} width="${this.sizex*this.scale}px" height="${this.sizey*this.scale}px" viewBox="0 0 ${this.sizex} ${this.sizey}">${this.svg}</svg>
+                    <svg ${posinfo} width="${this.sizex*this.scale}px" height="${this.sizey*this.scale}px" viewBox="0 0 ${this.sizex} ${this.sizey}"${kleur ? ` fill="${this.color}"` : ''}>${kleur ? this.kleurSVG(this.svg) : this.svg}</svg>
                     </g>`;               
 
         } else { // Indien we de SVG willen gebruiken in een innerHTML van een div element en dit element dan zelf positioneren en roteren
 
-            return `<svg class="svg-icon" width="${this.sizex*this.scale}px" height="${this.sizey*this.scale}px" viewBox="0 0 ${this.sizex} ${this.sizey}">${this.svg}</svg>`;           
+            const kleur = (this.heeftKleur() && this.isEendraadschemaSymbool());
+            return `<svg class="svg-icon" width="${this.sizex*this.scale}px" height="${this.sizey*this.scale}px" viewBox="0 0 ${this.sizex} ${this.sizey}"${kleur ? ` fill="${this.color}"` : ''}>${kleur ? this.kleurSVG(this.svg) : this.svg}</svg>`;           
         }
     }
 
@@ -472,6 +491,8 @@ export class SituationPlanElement {
             scale: this.scale,
 
             movable: this.movable,
+
+            color: this.color,
             
             svg: (this.isEendraadschemaSymbool() ? '' : this.svg), 
             electroItemId: this.electroItemId,
@@ -512,6 +533,8 @@ export class SituationPlanElement {
         this.needsViewUpdate = true; // TODO: make this more efficient as it will always trigger redraws, even when not needed
 
         this.movable = (json.movable != null) ? json.movable : true;
+
+        this.color = (typeof json.color === 'string' && json.color !== '') ? json.color : 'black';
 
         this.vorm = normaliseerVorm(json.vorm);
     }

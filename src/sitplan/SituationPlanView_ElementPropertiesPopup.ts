@@ -40,9 +40,19 @@ import { formatFloat, htmlspecialchars, trimString } from "../general";
  *                             - toonElementZoeker: boolean (laat toe een ander electroElement te zoeken dan hetgeen reeds eerder gekozen werd) 
  */
 
+/** Zet een kleurnaam (bvb. 'black') om naar #rrggbb voor een kleurkiezer. */
+function naarHexKleur(kleur: string | null | undefined): string {
+    if (kleur == null || kleur === '' || /^black$/i.test(kleur)) return '#000000';
+    if (/^#[0-9a-f]{6}$/i.test(kleur)) return kleur;
+    if (/^#[0-9a-f]{3}$/i.test(kleur)) return '#' + kleur.slice(1).split('').map(c => c + c).join('');
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (ctx) { ctx.fillStyle = kleur; if (/^#[0-9a-f]{6}$/i.test(ctx.fillStyle)) return ctx.fillStyle; }
+    return '#000000';
+}
+
 export function SituationPlanView_ElementPropertiesPopup(sitplanElement: SituationPlanElement, 
                          callbackOK: (id: number|null, adresType: string, adres: string, selectAdresLocation: string,
-                                      labelfontsize: number, scale: number, rotation: number) => void,
+                                      labelfontsize: number, scale: number, rotation: number, color?: string) => void,
                          callbackCancel: () => void = () => {},
                          options: any = {} ) {
 
@@ -345,6 +355,11 @@ export function SituationPlanView_ElementPropertiesPopup(sitplanElement: Situati
                     <label for="fontSizeInput" style="margin-right: 10px; display: inline-block; white-space: nowrap;">Tekengrootte (px):</label>
                     <input id="fontSizeInput" style="width: 100px;" type="number" min="1" max="72" step="11" value="11">
                 </div> 
+                <div id="colorContainer" style="display: flex; margin-bottom: 20px; align-items: center;">
+                    <label for="colorInput" style="margin-right: 10px; display: inline-block; white-space: nowrap;">Kleur:</label>
+                    <input id="colorInput" type="color" value="#000000">
+                    <small style="margin-left: 8px; color: #666;">van symbool en label</small>
+                </div>
                 <div style="display: flex; margin-bottom: 10px; align-items: center;">
                     <label for="scaleInput" style="margin-right: 10px; display: inline-block;">Schaal (%):</label>
                     <input id="scaleInput" style="width: 100px;" type="number" min="10" max="400" step="10" value="${String(globalThis.SITPLANVIEW_DEFAULT_SCALE*100)}">
@@ -385,6 +400,8 @@ export function SituationPlanView_ElementPropertiesPopup(sitplanElement: Situati
                 const selectAdresLocation = popupWindow.querySelector('#selectAdresLocation') as HTMLSelectElement;
             const fontSizeContainer = popupWindow.querySelector('#fontSizeContainer') as HTMLElement;
                 const fontSizeInput = popupWindow.querySelector('#fontSizeInput') as HTMLInputElement;           
+            const colorContainer = popupWindow.querySelector('#colorContainer') as HTMLElement;
+            const colorInput = popupWindow.querySelector('#colorInput') as HTMLInputElement;
             const scaleInput = popupWindow.querySelector('#scaleInput') as HTMLInputElement;
             const rotationInput = popupWindow.querySelector('#rotationInput') as HTMLInputElement;
             const setDefaultCheckbox = popupWindow.querySelector('#setDefaultCheckbox') as HTMLInputElement;
@@ -410,12 +427,14 @@ export function SituationPlanView_ElementPropertiesPopup(sitplanElement: Situati
             selectAdresType.value = sitplanElement.getAdresType();
             adresInput.value = sitplanElement.getAdres();
             fontSizeInput.value = String(sitplanElement.labelfontsize);
+            colorInput.value = naarHexKleur(sitplanElement.color);
             selectAdresLocation.value = sitplanElement.getAdresLocation();
             selectAdresTypeChanged();
         } else { // Het gaat over een geimporteerde CSV
             if (options.toonElementZoeker == null) options.toonElementZoeker = false;
             selectContainer.style.display = 'none';
             fontSizeContainer.style.display = 'none';
+            colorContainer.style.display = 'none';
             adresContainer.style.display = 'none';
         }
         scaleInput.value = formatFloat(sitplanElement.getscale()*100,6);
@@ -485,7 +504,8 @@ export function SituationPlanView_ElementPropertiesPopup(sitplanElement: Situati
             globalThis.structure.sitplan.defaults.scale = Number(scaleInput.value)/100;
         }
         closePopup(); // We close the popup first to avoid that an error somewhere leaves it open
-        callbackOK(returnId, selectAdresType.value, adresInput.value, selectAdresLocation.value, Number(fontSizeInput.value), Number(scaleInput.value)/100, Number(rotationInput.value));
+        callbackOK(returnId, selectAdresType.value, adresInput.value, selectAdresLocation.value, Number(fontSizeInput.value), Number(scaleInput.value)/100, Number(rotationInput.value),
+                   (/^#000000$/i.test(colorInput.value) ? 'black' : colorInput.value));
     };
 
     cancelButton.onclick = () => {

@@ -255,7 +255,12 @@ export class Print_Table {
         })
 
         let height = this.getstopy() - this.getstarty();
-        let maxsvgwidth = height * (this.getPaperSize()=="A3" ? 1.6878 : 1.8467 );
+        // Verhouding breedte/hoogte van de bruikbare tekenzone op de pagina (zie printToJsPDF)
+        //   liggend:  A4 277/150 = 1.8467, A3 400/237 = 1.6878
+        //   staand:   A4 190/243 = 0.7819, A3 277/360 = 0.7694
+        const staand = (globalThis.structure?.properties?.orientation === 'portrait');
+        let ratio = (this.getPaperSize()=="A3" ? (staand ? 0.7694 : 1.6878) : (staand ? 0.7819 : 1.8467));
+        let maxsvgwidth = height * ratio;
         let minsvgwidth = 3/4*maxsvgwidth;
 
         let page = 0;
@@ -345,6 +350,32 @@ export class Print_Table {
         }
 
         div.appendChild(select);
+    }
+
+    /**
+     * Keuzelijst voor de oriëntatie (liggend/staand) van de ééndraadschema-pagina's.
+     * Het situatieschema wordt altijd liggend afgedrukt.
+     */
+    insertHTMLselectOrientation(div: HTMLElement, redrawCallBack: RedrawCallBackFunction): void {
+        const select: HTMLSelectElement = document.createElement('select');
+        select.id = 'select_orientation_input';
+        select.title = 'Oriëntatie enkel voor het ééndraadschema; het situatieschema wordt altijd liggend afgedrukt.';
+        for (const [waarde, tekst] of [['landscape', 'Liggend'], ['portrait', 'Staand']]) {
+            const o = document.createElement('option');
+            o.value = waarde; o.textContent = tekst;
+            if ((globalThis.structure.properties.orientation ?? 'landscape') === waarde) o.selected = true;
+            select.appendChild(o);
+        }
+        select.onchange = (event) => {
+            globalThis.structure.properties.orientation = ((event.target as HTMLSelectElement).value === 'portrait' ? 'portrait' : 'landscape');
+            if (this.enableAutopage) this.autopage();
+            redrawCallBack();
+        };
+        div.appendChild(select);
+        const uitleg = document.createElement('small');
+        uitleg.textContent = ' (enkel ééndraadschema)';
+        uitleg.style.color = '#666';
+        div.appendChild(uitleg);
     }
 
     /**

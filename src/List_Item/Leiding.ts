@@ -14,9 +14,9 @@ export class Leiding extends Electro_Item {
         this.clearProps();
         this.props.type  = "Leiding";
         this.props.type_kabel = "XVB Cca 3G2,5";
+        this.props.tekst = "";
         this.props.kabel_locatie = "N/A";
         this.props.kabel_is_in_buis = false;
-        this.props.tekst = "";
         this.props.adres = "";
     }
 

@@ -28,13 +28,11 @@ export class Vrije_tekst extends Electro_Item {
         this.props.is_vet = false;
         this.props.is_cursief = false;
         this.props.adres = "";
-        this.props.kader_type = "volle lijn";
-        this.props.kader_geometrie = "rechthoek";
     }    
 
     overrideKeys() {
         if (!["verbruiker","aangepast"].includes(this.props.vrije_tekst_type)) { this.props.vrije_tekst_type = "zonder kader"; }
-        if (this.props.kader_type == null) this.props.kader_type = "volle lijn";
+        // kader_type wordt pas bewaard wanneer het gewijzigd wordt (zoals in de originele versie)
         if (this.props.kader_geometrie == null) this.props.kader_geometrie = "rechthoek";
         if (this.props.heeft_automatische_breedte != "automatisch") { this.props.heeft_automatische_breedte = "handmatig"; }
         if (this.heeftVerbruikerAlsKind() && (this.props.vrije_tekst_type == "zonder kader")) { this.props.vrije_tekst_type = "verbruiker"; }

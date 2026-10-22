@@ -19,6 +19,7 @@ export class Omvormer extends Electro_Item {
         this.props.micro = false;
         this.props.type_ingang = "AC";
         this.props.type_uitgang = "DC";
+        this.props.tekst = "";
         this.props.details = "Merk: ___|Type: ___|S/N: ___|P: ___kW (DC)|P: ___kW (AC)";
     }
 
