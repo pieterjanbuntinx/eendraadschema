@@ -1,5 +1,6 @@
 import { randomId } from "../general";
 import { Electro_Item } from "../List_Item/Electro_Item";
+import { Vorm, vormNaarSVG, normaliseerVorm } from "./Vormen";
 
 export type AdresLocation = 'rechts'|'links'|'boven'|'onder';
 export type AdresType = 'auto'|'manueel';
@@ -55,6 +56,23 @@ export class SituationPlanElement {
 
     // -- Een vlag voor verplaatsbaarheid
     public movable = true;
+
+    // -- Getekende vorm (lijn, rechthoek, ellips) indien van toepassing; de svg wordt hieruit gegenereerd
+    public vorm: Vorm | null = null;
+
+    /** Stel de vorm in en genereer de bijhorende SVG. */
+    public zetVorm(vorm: Vorm) {
+        this.vorm = vorm;
+        const r = vormNaarSVG(vorm);
+        this.svg = r.svg;
+        this.sizex = r.sizex;
+        this.sizey = r.sizey;
+        this.needsViewUpdate = true;
+    }
+
+    public isVorm(): boolean {
+        return (this.vorm != null) && (this.electroItemId == null);
+    }
 
     /**
      * Constructor 
@@ -456,7 +474,8 @@ export class SituationPlanElement {
             movable: this.movable,
             
             svg: (this.isEendraadschemaSymbool() ? '' : this.svg), 
-            electroItemId: this.electroItemId
+            electroItemId: this.electroItemId,
+            ...(this.vorm != null ? { vorm: this.vorm } : {})
         };
     }
 
@@ -493,5 +512,7 @@ export class SituationPlanElement {
         this.needsViewUpdate = true; // TODO: make this more efficient as it will always trigger redraws, even when not needed
 
         this.movable = (json.movable != null) ? json.movable : true;
+
+        this.vorm = normaliseerVorm(json.vorm);
     }
 }

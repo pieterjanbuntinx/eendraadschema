@@ -680,3 +680,13 @@ table {
 #sidebar .sb-toevoegen { background: green; color: black; }
 #sidebar .sb-knop:hover { filter: brightness(1.15); }
 .sp-pagepijl { padding: 0 5px; cursor: pointer; }
+
+/* -- Tekengereedschap situatieschema -- */
+.teken-icon .icon-image { display: flex; justify-content: center; color: #333; }
+.teken-icon.actief { background-color: #cfe8cf; border-radius: 6px; outline: 2px solid green; }
+#canvas.tekenmodus .box, #canvas.tekenmodus .boxlabel { cursor: crosshair; }
+.teken-voorbeeld { position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none; z-index: 10000; }
+.vorm-popup { min-width: 300px; }
+.vorm-tabel td { padding: 3px 6px; }
+.vorm-tabel input[type=number] { width: 80px; }
+.vorm-knoppen { display: flex; justify-content: center; gap: 6px; margin-top: 10px; }

@@ -1,4 +1,5 @@
 export const changelog = [
+  { date: "2026-10-22", msg: "Situatieschema: lijnen, rechthoeken en ellipsen tekenen. Shift = loodrecht/45°, vierkant of cirkel; dubbelklik om lijndikte, kleur, lijnstijl, vulling, afgeronde hoeken en pijlpunten aan te passen." },
   { date: "2026-10-22", msg: "Eéndraadschema en situatieschema kunnen elk in een apart venster geopend worden; wijzigingen worden live in beide vensters bijgewerkt. De scrollpositie van het ééndraadschema blijft bewaard bij het wisselen van tabblad." },
   { date: "2026-10-22", msg: "Situatieschema: zijbalk \"Snel toevoegen\" om symbolen per kring of borden met één klik toe te voegen, pijltjes om van pagina te wisselen, en scrollen met het muiswiel boven de kring- of paginakeuze." },
   { date: "2026-10-22", msg: "Opmaak verbeterd: adres eerst en daaronder de tekst bij zonnepaneel, batterij, elektriciteitsmeter, omvormer en aansluiting; lange adressen schuiven het volgende element op; lichtpunten met aantal/halfwaterdicht krijgen extra ruimte; kabel wordt verlengd bij een lang kabeltype; ruimte voor lange kringnamen." },

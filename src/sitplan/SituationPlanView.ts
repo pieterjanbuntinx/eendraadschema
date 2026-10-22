@@ -2,6 +2,7 @@ import { SituationPlan } from "./SituationPlan";
 import { SituationPlanElement } from "./SituationPlanElement";
 import { AdresType, AdresLocation } from "./SituationPlanElement";
 import { SituationPlanView_SideBar, koppelScrollwielAanSelect } from "./SituationPlanView_SideBar";
+import { VormSoort, Vorm, nieuweVorm, toonVormEigenschappen, VORM_LABELS } from "./Vormen";
 import { SituationPlanView_Selected } from "./SituationPlanView_Selected";
 import { SituationPlanView_ChooseCustomElementPopup } from "./SituationPlanView_ChooseCustomElementPopup";
 import { ContextMenu } from "./ContextMenu";
@@ -82,6 +83,152 @@ export class SituationPlanView {
 
         // Voegt event handlers toe voor de pijltjestoesten
         this.attachArrowKeys();
+
+        // Tekenen van lijnen, rechthoeken en ellipsen (capture zodat dit voorgaat op selecteren/verslepen)
+        canvas.addEventListener('mousedown', this.tekenStart, true);
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (this.tekenGereedschap != null && e.key === 'Escape') { e.preventDefault(); this.stopTekenen(); }
+        }, true);
+    }
+
+    // ------------------------------------------------------------------
+    // Tekengereedschap: lijn, rechthoek, ellips
+    // ------------------------------------------------------------------
+
+    private tekenGereedschap: VormSoort | null = null;
+    private tekenVoorbeeld: SVGSVGElement | null = null;
+
+    /** Kies een tekengereedschap (of null om te stoppen). Nogmaals hetzelfde kiezen schakelt het uit. */
+    kiesTekenGereedschap(soort: VormSoort | null) {
+        this.contextMenu.hide();
+        this.tekenGereedschap = (soort === this.tekenGereedschap ? null : soort);
+        this.canvas.style.cursor = (this.tekenGereedschap != null ? 'crosshair' : '');
+        this.canvas.classList.toggle('tekenmodus', this.tekenGereedschap != null);
+        if (this.tekenGereedschap != null) this.clearSelection();
+        this.updateRibbon();
+    }
+
+    stopTekenen() {
+        this.verwijderTekenVoorbeeld();
+        if (this.tekenGereedschap != null) this.kiesTekenGereedschap(null);
+    }
+
+    private verwijderTekenVoorbeeld() {
+        if (this.tekenVoorbeeld != null) { this.tekenVoorbeeld.remove(); this.tekenVoorbeeld = null; }
+    }
+
+    private muisNaarPapier(e: MouseEvent) {
+        const r = this.canvas.getBoundingClientRect();
+        return this.canvasPosToPaperPos(e.clientX - r.left, e.clientY - r.top);
+    }
+
+    /**
+     * Berekent uit begin- en eindpunt (in papiercoördinaten) de vorm, het middelpunt en de rotatie.
+     * Met shift: lijnen in stappen van 45°, rechthoek wordt vierkant, ellips wordt cirkel.
+     */
+    private berekenVorm(soort: VormSoort, a: { x: number, y: number }, b: { x: number, y: number }, shift: boolean) {
+        let dx = b.x - a.x, dy = b.y - a.y;
+        if (soort === 'lijn') {
+            let lengte = Math.hypot(dx, dy);
+            let hoek = Math.atan2(dy, dx) * 180 / Math.PI;
+            if (shift) hoek = Math.round(hoek / 45) * 45;
+            const rad = hoek * Math.PI / 180;
+            const eind = { x: a.x + Math.cos(rad) * lengte, y: a.y + Math.sin(rad) * lengte };
+            return { breedte: lengte, hoogte: 0, cx: (a.x + eind.x) / 2, cy: (a.y + eind.y) / 2, rotatie: hoek, eind };
+        } else {
+            if (shift) {
+                const m = Math.max(Math.abs(dx), Math.abs(dy));
+                dx = (dx < 0 ? -m : m); dy = (dy < 0 ? -m : m);
+            }
+            return { breedte: Math.abs(dx), hoogte: Math.abs(dy), cx: a.x + dx / 2, cy: a.y + dy / 2, rotatie: 0, eind: { x: a.x + dx, y: a.y + dy } };
+        }
+    }
+
+    private tekenStart = (e: MouseEvent) => {
+        if (this.tekenGereedschap == null || e.button !== 0) return;
+        e.preventDefault();
+        e.stopPropagation();
+        this.contextMenu.hide();
+        const soort = this.tekenGereedschap;
+        const start = this.muisNaarPapier(e);
+
+        this.verwijderTekenVoorbeeld();
+        const ns = 'http://www.w3.org/2000/svg';
+        const svg = document.createElementNS(ns, 'svg') as SVGSVGElement;
+        svg.setAttribute('class', 'teken-voorbeeld');
+        svg.setAttribute('width', '1'); svg.setAttribute('height', '1');
+        this.paper.appendChild(svg);
+        this.tekenVoorbeeld = svg;
+        const stijl = nieuweVorm(soort, 1, 1);
+        const lijnStijl = `stroke="${stijl.kleur}" stroke-width="${stijl.lijndikte}" fill="${soort === 'lijn' || stijl.vulling == null ? 'none' : stijl.vulling}" stroke-opacity="0.8"`;
+
+        const beweeg = (ev: MouseEvent) => {
+            const p = this.muisNaarPapier(ev);
+            const r = this.berekenVorm(soort, start, p, ev.shiftKey);
+            const x0 = Math.min(start.x, r.eind.x), y0 = Math.min(start.y, r.eind.y);
+            let inhoud = '';
+            if (soort === 'lijn') inhoud = `<line x1="${start.x}" y1="${start.y}" x2="${r.eind.x}" y2="${r.eind.y}" ${lijnStijl} />`;
+            else if (soort === 'rechthoek') {
+                const hr = Math.min(stijl.hoekstraal, r.breedte / 2, r.hoogte / 2);
+                inhoud = `<rect x="${x0}" y="${y0}" width="${r.breedte}" height="${r.hoogte}" rx="${hr}" ${lijnStijl} />`;
+            }
+            else inhoud = `<ellipse cx="${r.cx}" cy="${r.cy}" rx="${r.breedte / 2}" ry="${r.hoogte / 2}" ${lijnStijl} />`;
+            svg.innerHTML = inhoud;
+        };
+
+        const los = (ev: MouseEvent) => {
+            window.removeEventListener('mousemove', beweeg, true);
+            window.removeEventListener('mouseup', los, true);
+            this.verwijderTekenVoorbeeld();
+            const p = this.muisNaarPapier(ev);
+            let r = this.berekenVorm(soort, start, p, ev.shiftKey);
+            // Gewoon klikken zonder slepen: vorm van standaardgrootte
+            const klein = (soort === 'lijn' ? r.breedte < 3 : (r.breedte < 3 && r.hoogte < 3));
+            if (klein) {
+                if (soort === 'lijn') r = { breedte: 100, hoogte: 0, cx: start.x + 50, cy: start.y, rotatie: 0, eind: { x: start.x + 100, y: start.y } };
+                else r = { breedte: 100, hoogte: (soort === 'ellips' ? 100 : 60), cx: start.x + 50, cy: start.y + (soort === 'ellips' ? 50 : 30), rotatie: 0, eind: start };
+            }
+            if (soort !== 'lijn') { r.breedte = Math.max(r.breedte, 2); r.hoogte = Math.max(r.hoogte, 2); }
+            this.voegVormToe(nieuweVorm(soort, r.breedte, Math.max(r.hoogte, 1)), r.cx, r.cy, r.rotatie);
+            // Na het tekenen terug naar selecteren, tenzij ctrl ingedrukt is (dan meerdere vormen na elkaar)
+            if (!(ev.ctrlKey || ev.metaKey)) this.kiesTekenGereedschap(null);
+        };
+
+        window.addEventListener('mousemove', beweeg, true);
+        window.addEventListener('mouseup', los, true);
+    }
+
+    /** Voegt een vorm toe op de actieve pagina met middelpunt (posx, posy). */
+    voegVormToe(vorm: Vorm, posx: number, posy: number, rotatie: number = 0) {
+        const element = new SituationPlanElement();
+        element.setVars({ page: this.sitplan.activePage, posx: posx, posy: posy, labelfontsize: this.sitplan.defaults.fontsize, rotate: rotatie, movable: true });
+        element.setscale(1);
+        element.setAdres('manueel', '', 'rechts');
+        element.zetVorm(vorm);
+        this.sitplan.addElement(element);
+        this.clearSelection();
+        this.redraw();
+        if (element.boxref) this.selectOneBox(element.boxref);
+        globalThis.undostruct.store();
+        return element;
+    }
+
+    /** Open het venster om een getekende vorm te bewerken. */
+    private bewerkVorm(element: SituationPlanElement, cancelCallback?: () => void) {
+        if (element.vorm == null) return;
+        this.unattachArrowKeys();
+        const toon = (v: Vorm, rotatie: number) => {
+            element.zetVorm(v);
+            element.rotate = rotatie;
+            this.updateBoxContent(element);
+            this.updateSymbolAndLabelPosition(element);
+        };
+        toonVormEigenschappen(element.vorm, element.rotate, toon, (ok, v, rotatie) => {
+            this.attachArrowKeys();
+            toon(v, rotatie);
+            if (ok) globalThis.undostruct.store();
+            else if (cancelCallback) cancelCallback();
+        });
     }
 
     /**
@@ -414,6 +561,12 @@ export class SituationPlanView {
         boxlabel.addEventListener('mousedown', this.startDrag);
         boxlabel.addEventListener('touchstart', this.startDrag);
         box.addEventListener('contextmenu', this.showContextMenu);
+        box.addEventListener('dblclick', (e) => {
+            if (!element.isVorm()) return;
+            e.preventDefault(); e.stopPropagation();
+            this.selectOneBox(box);
+            this.bewerkVorm(element);
+        });
         boxlabel.addEventListener('contextmenu', this.showContextMenu);
     }
 
@@ -1428,6 +1581,8 @@ export class SituationPlanView {
             const sitPlanElement = (this.selected.getLastSelected() as any).sitPlanElementRef;
             if (!sitPlanElement) return;
 
+            if (sitPlanElement.isVorm && sitPlanElement.isVorm()) { this.bewerkVorm(sitPlanElement, cancelCallback); return; }
+
             SituationPlanView_ElementPropertiesPopup(sitPlanElement,
                 /* OK button callback */
                 (electroid, adrestype, adres, adreslocation, labelfontsize, scale, rotate) => {
@@ -1552,6 +1707,23 @@ export class SituationPlanView {
                 <span class="icon-text">Los symbool</span>
             </div>`;
 
+        // -- Tekengereedschap --
+
+        outputleft += `<span style="display: inline-block; width: 10px;"></span>`;
+        const tekenIconen: Record<VormSoort, string> = {
+            lijn: '<svg width="26" height="26" viewBox="0 0 26 26"><line x1="3" y1="22" x2="23" y2="4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>',
+            rechthoek: '<svg width="26" height="26" viewBox="0 0 26 26"><rect x="3" y="6" width="20" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
+            ellips: '<svg width="26" height="26" viewBox="0 0 26 26"><ellipse cx="13" cy="13" rx="10" ry="7.5" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>',
+        };
+        for (const soort of ['lijn', 'rechthoek', 'ellips'] as VormSoort[]) {
+            outputleft += `
+            <div class="icon teken-icon${this.tekenGereedschap === soort ? ' actief' : ''}" id="button_teken_${soort}"
+                 title="${VORM_LABELS[soort]} tekenen: klik en sleep op het blad. Shift = ${soort === 'lijn' ? 'loodrecht/45°' : (soort === 'rechthoek' ? 'vierkant' : 'cirkel')}, Ctrl = meerdere na elkaar, Esc = stoppen. Dubbelklik op een vorm om te bewerken.">
+                <span class="icon-image">${tekenIconen[soort]}</span>
+                <span class="icon-text">${VORM_LABELS[soort]}</span>
+            </div>`;
+        }
+
         outputleft += `
             <div class="icon" id="button_Delete">
                 <span class="icon-image" style="font-size:24px">🗑</span>
@@ -1627,7 +1799,7 @@ export class SituationPlanView {
         outputright += `
             <div class="icon" onclick="openInNieuwVenster('2col')" title="Open het ééndraadschema in een apart venster. Wijzigingen worden in beide vensters bijgewerkt.">
                 <span class="icon-image" style="font-size: 24px;">🗗</span>
-                <span class="icon-text">Eéndraadschema<br>apart venster</span>
+                <span class="icon-text">Apart venster</span>
             </div>`;
 
         // -- Visuals om pagina te zoomen --
@@ -1710,6 +1882,10 @@ export class SituationPlanView {
         this.attachAddElectroItemButton(document.getElementById('button_Add_electroItem'));
         this.attachAddCustomItemButton(document.getElementById('button_Add_customItem'));
         this.attachDeleteButton(document.getElementById('button_Delete'));
+        for (const soort of ['lijn', 'rechthoek', 'ellips'] as VormSoort[]) {
+            const knop = document.getElementById('button_teken_' + soort);
+            if (knop) knop.onclick = () => this.kiesTekenGereedschap(soort);
+        }
 
         // -- Actions om visuals te bewerken --
 
