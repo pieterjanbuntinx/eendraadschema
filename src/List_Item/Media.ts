@@ -16,7 +16,7 @@ export class Media extends Electro_Item {
         this.props.type = "Media";
         this.props.adres = "";
         this.props.aantal = 1;
-        this.props.symbool = "";
+        this.props.symbool = "luidspreker";
     }
 
     overrideKeys() {

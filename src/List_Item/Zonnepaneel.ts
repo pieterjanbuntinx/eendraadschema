@@ -18,10 +18,12 @@ export class Zonnepaneel extends Electro_Item {
         this.props.aantal = "1";
         this.props.adres = "";
         this.props.symbool = "driehoek";
+        this.props.details = "Merk: ___|Type: ___|Pmax: ___Wp|Umax: ___V";
     }
 
     overrideKeys() {
         if (this.props.symbool == null) this.props.symbool = "driehoek";
+        if (this.props.details == null) this.props.details = "";
     }
 
     toHTML(mode: string) {
@@ -32,6 +34,7 @@ export class Zonnepaneel extends Electro_Item {
                +  " Aantal: " + this.selectPropToHTML('aantal',["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20",
                                                      "21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40"])
                +  ', Symbool: ' + this.selectPropToHTML('symbool',["driehoek","pijltjes"])
+               +  ', Tekst onder object (nieuwe lijn = "|"): ' + this.stringPropToHTML('details',20)
                +  ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);
@@ -62,7 +65,18 @@ export class Zonnepaneel extends Electro_Item {
         mySVG.data += '<text x="45" y="9" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">' + htmlspecialchars(this.props.aantal) + 'x</text>';
             
         // Adres helemaal onderaan plaatsen
-        mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,70,15));
+        let ytekst = 70;
+        if (!sitplan) {
+            this.overrideKeys();
+            const details = this.detailsLinesToSVG(this.props.details, 21, 70);
+            if (details.height > 0) {
+                mySVG.data += details.svg;
+                mySVG.ydown += details.height;
+                mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
+                ytekst += details.height;
+            }
+        }
+        mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,ytekst,15));
 
         return(mySVG);
     }

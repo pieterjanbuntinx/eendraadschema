@@ -15,10 +15,12 @@ export class Batterij extends Electro_Item {
         this.props.type = "Batterij";
         this.props.adres = "";
         this.props.symbool = "standaard";
+        this.props.details = "Pmax: ___Wp|U: ___V|E: ___kWh";
     }
 
     overrideKeys() {
         if (this.props.symbool == null) this.props.symbool = "standaard";
+        if (this.props.details == null) this.props.details = "";
     }
 
     toHTML(mode: string) {
@@ -26,6 +28,8 @@ export class Batterij extends Electro_Item {
 
         output += "&nbsp;" + this.nrToHtml();
         output += 'Symbool: ' + this.selectPropToHTML('symbool',["standaard","blokbatterij"])
+        if (this.props.details == null) this.props.details = "";
+        output += ', Tekst onder object (nieuwe lijn = "|"): ' + this.stringPropToHTML('details',20);
         output += ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);
@@ -54,7 +58,17 @@ export class Batterij extends Electro_Item {
         }
 
         
-        mySVG.data += (sitplan? "": this.addAddressToSVG(mySVG,55,10));
+        let ytekst = 55;
+        if (!sitplan) {
+            const details = this.detailsLinesToSVG(this.props.details ?? "", 21, 55);
+            if (details.height > 0) {
+                mySVG.data += details.svg;
+                mySVG.ydown += details.height;
+                mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
+                ytekst += details.height;
+            }
+        }
+        mySVG.data += (sitplan? "": this.addAddressToSVG(mySVG,ytekst,10));
 
         return(mySVG);
     }

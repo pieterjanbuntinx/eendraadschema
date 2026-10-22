@@ -32,6 +32,9 @@ import { Microgolfoven } from "./List_Item/Microgolfoven";
 import { Motor } from "./List_Item/Motor";
 import { Omvormer } from "./List_Item/Omvormer";
 import { Omschakelaar } from "./List_Item/Omschakelaar";
+import { Detector } from "./List_Item/Detector";
+import { Modulaire_schakelaar } from "./List_Item/Modulaire_schakelaar";
+import { Klemmenstrook } from "./List_Item/Klemmenstrook";
 import { Overspanningsbeveiliging } from "./List_Item/Overspanningsbeveiliging";
 import { Lichtcircuit } from "./List_Item/Schakelaars/Lichtcircuit";
 import { Schakelaars } from "./List_Item/Schakelaars/Schakelaars";
@@ -383,6 +386,9 @@ export class Hierarchical_List {
             case 'Microgolfoven': tempval = new Microgolfoven(this); break;
             case 'Motor': tempval = new Motor(this); break;
             case 'Omschakelaar': tempval = new Omschakelaar(this); break;
+            case 'Detector': tempval = new Detector(this); break;
+            case 'Modulaire schakelaar': tempval = new Modulaire_schakelaar(this); break;
+            case 'Klemmenstrook': tempval = new Klemmenstrook(this); break;
             case 'Omvormer': tempval = new Omvormer(this); break;
             case 'Overspanningsbeveiliging': tempval = new Overspanningsbeveiliging(this); break;
             case 'Schakelaars': tempval = new Schakelaars(this); break;
@@ -1118,7 +1124,7 @@ export class Hierarchical_List {
 
         // Nu gaan we doorheen alle items en passen we de nummers aan indien nodig
         let lastNumbers: { [kring: string]: number } = {}; // Object to keep track of last numbers for each type
-        let itemsZonderNr: Array<string> = ["", "Bord", "Kring", "Splitsing"];
+        let itemsZonderNr: Array<string> = ["", "Bord", "Kring", "Splitsing", "Klemmenstrook"];
         
         for (let i = 0; i<this.length; i++) {
             if (!this.active[i]) continue;
@@ -1145,8 +1151,13 @@ export class Hierarchical_List {
             } else if (!contains(itemsZonderNr, (this.data[i] as Electro_Item).getType())) {
                 let electroItem: Electro_Item = this.data[i] as Electro_Item; if (electroItem == null) continue;
                 let parent:Electro_Item = (electroItem.getParent() as Electro_Item); if (parent == null) continue;
-                if ( (parent.getType() == "Kring") || (parent.getType() == "Domotica module (verticaal)") ) {
-                    if (electroItem.props.autonr === 'auto') {
+                if (electroItem.heeftNummerInOuder()) {
+                    if (electroItem.props.autonr === 'geen') {
+                        if (electroItem.props.nr != "") {
+                            electroItem.props.nr = "";
+                            changeInLeftColIfOpen(electroItem.id, "");
+                        }
+                    } else if (electroItem.props.autonr === 'auto') {
                         // We hebben een autonummering, dus we gaan het nummer aanpassen
                         lastNumbers[kringnaam] = (lastNumbers[kringnaam] || 0) + 1; // Increment the last number for this kring
                         let newnr = lastNumbers[kringnaam].toString(); 
@@ -1189,6 +1200,7 @@ export class Hierarchical_List {
                         break;
 
                     case "Splitsing":
+                    case "Klemmenstrook":
                         inSVG[elementCounter] = this.data[i].toSVG();
                         break;
 
@@ -1223,6 +1235,7 @@ export class Hierarchical_List {
                         break;
 
                     case "Domotica gestuurde verbruiker":
+                    case "Modulaire schakelaar":
                         inSVG[elementCounter] = this.data[i].toSVG(); //Maak de tekening
                         this.tekenVerticaleLijnIndienKindVanKring(this.data[i] as Electro_Item,inSVG[elementCounter]);         
                         break;   

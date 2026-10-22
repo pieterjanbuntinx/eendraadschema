@@ -15,7 +15,7 @@ export class Zeldzame_symbolen extends Electro_Item {
         this.clearProps();
         this.props.type = "Zeldzame symbolen";
         this.props.adres = "";
-        this.props.symbool = "";
+        this.props.symbool = "aarding";
     }
 
     overrideKeys() {

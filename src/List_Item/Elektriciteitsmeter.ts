@@ -13,14 +13,17 @@ export class Elektriciteitsmeter extends Electro_Item {
     resetProps() {
         this.clearProps();
         this.props.type = "Elektriciteitsmeter";
-        this.props.adres = "";  
+        this.props.adres = "";
+        this.props.details = "";  
     }      
 
     toHTML(mode: string) {
         let output = this.toHTMLHeader(mode);
 
         output += "&nbsp;" + this.nrToHtml();
-        output += "Adres/tekst: " + this.stringPropToHTML('adres',5);
+        if (this.props.details == null) this.props.details = "";
+        output += 'Tekst onder object (nieuwe lijn = "|"): ' + this.stringPropToHTML('details',20);
+        output += ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);
     }
@@ -38,7 +41,17 @@ export class Elektriciteitsmeter extends Electro_Item {
         mySVG.data = (sitplan? "" : '<line x1="1" y1="25" x2="21" y2="25" stroke="black"></line>')
                    + '<use xlink:href="#elektriciteitsmeter" x="21" y="25"></use>';
         
-        mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,60,15));
+        let ytekst = 60;
+        if (!sitplan) {
+            const details = this.detailsLinesToSVG(this.props.details, 21, 58);
+            if (details.height > 0) {
+                mySVG.data += details.svg;
+                mySVG.ydown += details.height;
+                mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
+                ytekst += details.height;
+            }
+        }
+        mySVG.data += (sitplan? "" : this.addAddressToSVG(mySVG,ytekst,15));
 
         return(mySVG);
     }

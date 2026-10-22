@@ -17,6 +17,8 @@ export class Schakelaar {
     aantal: number;
     normaalGesloten: boolean;
     sturing: string;
+    vertraagd: boolean = false;      // vertraagde opening, aangeduid met een "t" bij de schakelaar
+    inVerdeelbord: boolean = false;  // schakelaar in het verdeelbord, aangeduid met een kadertje
 
     sitplan: boolean = false;
     mirrortext: boolean = false;
@@ -42,6 +44,18 @@ export class Schakelaar {
                 outputstr += `<text x="${endx}" y="10" ${textoptions}>h</text>`;
             else
                 outputstr += `<text transform="scale(-1,1) translate(${-2*endx},0)" x="${endx}" y="10" ${textoptions}>h</text>`;
+        }
+        if (this.vertraagd) {
+            let textoptions = 'style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10"';
+            const tx = endx - (this.inVerdeelbord ? 15 : 7);
+            if (this.mirrortext == false)
+                outputstr += `<text x="${tx}" y="12" ${textoptions}>t</text>`;
+            else
+                outputstr += `<text transform="scale(-1,1) translate(${-2*tx},0)" x="${tx}" y="12" ${textoptions}>t</text>`;
+        }
+        if (this.inVerdeelbord) {
+            outputstr += `<rect x="${endx-9}" y="2" width="27" height="30" fill="none" stroke="black" />`
+                      +  `<line x1="${endx-9}" x2="${endx+18}" y1="35" y2="35" stroke="black" />`;
         }
         if (this.verklikkerlamp)   outputstr += '<line x1="' + (endx-3) + '" x2="' + (endx+3) + '" y1="22" y2="28" stroke="black" /><line x1="' + (endx-3) + '" x2="' + (endx+3) + '" y1="28" y2="22" stroke="black" />';
         if (this.trekschakelaar) {
@@ -189,6 +203,19 @@ export class Schakelaar {
         return({endx: endx, str: outputstr, lowerbound: null});        
     }
 
+    draaischakelaartoDrawReturnObj(startx: number): drawReturnObj {
+        let outputstr:string = "";
+        let endx = startx + 25;
+
+        SVGSymbols.addSymbol('schakelaar_draai');
+
+        outputstr += '<line x1="' + startx + '" x2="' + endx + '" y1="25" y2="25" stroke="black" />'
+                  +  '<use xlink:href="#schakelaar_draai" x="' + endx + '" y="25" />'
+                  +  this.schakelaarAttributentoSVGString(endx);
+
+        return({endx: endx, str: outputstr, lowerbound: null});
+    }
+
     rolluikschakelaartoDrawReturnObj(startx: number): drawReturnObj {
         let outputstr:string = "";
         let endx = startx + 30;
@@ -268,7 +295,7 @@ export class Schakelaar {
     extraPlaatsRechts() : number {
         if ( (this.type == "enkel") || (this.type == "dubbel") || (this.type == "driepolig") || (this.type == "dubbelaansteking") ||
              (this.type == "wissel_enkel") || (this.type == "wissel_dubbel") || (this.type == "kruis_enkel") || (this.type == "dimschakelaar") ||
-             (this.type == "dimschakelaar_wissel") ) return 10;
+             (this.type == "dimschakelaar_wissel") ) return (this.inVerdeelbord ? 12 : 10);
         else if (this.type == "rolluikschakelaar")   return 7;
         else                                         return 0;
     }
@@ -326,6 +353,10 @@ export class Schakelaar {
                 ( {endx: endx, str: outputstr} = (this.bewegingsschakelaartoDrawReturnObj(startx)) );
                 endx += 40;
                 lowerbound = Math.max(lowerbound,30);
+                break;
+            case "draaischakelaar":
+                ( {endx: endx, str: outputstr} = (this.draaischakelaartoDrawReturnObj(startx)) );
+                endx += 27;
                 break;
             case "rolluikschakelaar":
                 ( {endx: endx, str: outputstr} = (this.rolluikschakelaartoDrawReturnObj(startx)) );

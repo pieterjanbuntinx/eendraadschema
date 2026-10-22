@@ -15,10 +15,11 @@ export class Aftakdoos extends Electro_Item {
         this.clearProps();
         this.props.type = "Aftakdoos";
         this.props.adres = "";  
+        this.props.nrKinderen = false;
     }    
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
-        return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
+        return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Detector", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Modulaire schakelaar", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
     }
 
     getMaxNumChilds(): number {
@@ -28,7 +29,9 @@ export class Aftakdoos extends Electro_Item {
     toHTML(mode: string) {
         let output = this.toHTMLHeader(mode);
 
+        if (this.props.nrKinderen == null) this.props.nrKinderen = false;
         output += "&nbsp;" + this.nrToHtml();
+        output += "Kinderen nummeren: " + this.checkboxPropToHTML('nrKinderen') + ", ";
         output += "Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);
@@ -91,6 +94,21 @@ export class Aftakdoos extends Electro_Item {
             let distance = Math.sqrt(Math.pow(endpos.x-startpos.x, 2) + Math.pow(endpos.y - startpos.y, 2));
             let startfraction = 15/distance;
             mySVG.data += `<line x1="${startpos.x+startfraction*(endpos.x-startpos.x)}" y1="${startpos.y+startfraction*(endpos.y-startpos.y)}" x2="${endpos.x}" y2="${endpos.y}" stroke="black" stroke-linecap="round"></line>`;
+        }
+
+        // Nummers van de kinderen tekenen indien gevraagd
+        if (this.props.nrKinderen === true) {
+            const kinderen: Electro_Item[] = [];
+            for (let i = 0; i<this.sourcelist.length; i++) {
+                const item = this.sourcelist.data[i] as Electro_Item;
+                if (this.sourcelist.active[i] && (item.parent == this.id) && !item.isAttribuut() && (item.getType() != "Container")) kinderen.push(item);
+            }
+            for (let i=0; i<mySVG.connectorPos.length && i<kinderen.length; i++) {
+                if (mySVG.connectorPos[i] == null) continue;
+                const nr = kinderen[i].props.nr ?? "";
+                if (trimString(String(nr)) == "") continue;
+                mySVG.data += `<text x="${51+connectorSpace+9}" y="${height-mySVG.connectorPos[i]-5}" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">${htmlspecialchars(nr)}</text>`;
+            }
         }
 
         mySVG.data += `<line x1="1" y1="${mySVG.yup}" x2="21" y2="${mySVG.yup}" stroke="black"></line>`

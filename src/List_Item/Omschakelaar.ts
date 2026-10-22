@@ -22,12 +22,12 @@ export class Omschakelaar extends Electro_Item {
     resetProps() {
         this.clearProps();
         this.props.type = "Omschakelaar";
-        this.props.tekst = "Omschakelaar";
+        this.props.details = "Omschakelaar";
         this.props.adres = "";
     }
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
-        return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
+        return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Detector", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Modulaire schakelaar", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
     }
 
     getMaxNumChilds(): number {
@@ -35,7 +35,8 @@ export class Omschakelaar extends Electro_Item {
     }
 
     overrideKeys() {
-        if (this.props.tekst == null) this.props.tekst = "Omschakelaar";
+        if (this.props.details == null) this.props.details = (this.props.tekst != null ? this.props.tekst : "Omschakelaar");
+        delete this.props.tekst;
         if (this.props.adres == null) this.props.adres = "";
     }
 
@@ -44,7 +45,7 @@ export class Omschakelaar extends Electro_Item {
         let output = this.toHTMLHeader(mode);
 
         output += "&nbsp;" + this.nrToHtml();
-        output += "Tekst onder object: " + this.stringPropToHTML('tekst',12) + ", ";
+        output += "Tekst onder object: " + this.stringPropToHTML('details',12) + ", ";
         output += "Adres: " + this.stringPropToHTML('adres',5);
 
         return(output);
@@ -79,7 +80,8 @@ export class Omschakelaar extends Electro_Item {
 
         /* else (not sitplan) */
 
-        const text = htmlspecialchars(this.props.tekst ?? "");
+        this.overrideKeys();
+        const text = htmlspecialchars(this.props.details ?? "");
 
         // Eerst vragen we een tekening van alle kinderen
         mySVG = this.sourcelist.toSVG(this.id,"vertical");
@@ -110,7 +112,7 @@ export class Omschakelaar extends Electro_Item {
 
         // Tekst onder het kader
         let below = yc + rectHeight/2;
-        if (trimString(this.props.tekst ?? "") !== "") {
+        if (trimString(this.props.details ?? "") !== "") {
             below += 12;
             mySVG.data += `<text x="46" y="${below}" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">${text}</text>`;
             mySVG.xright = Math.max(mySVG.xright, 46 + svgTextWidth(text, 10, '')/2 + 2);

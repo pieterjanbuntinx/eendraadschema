@@ -23,12 +23,13 @@ export class Lichtcircuit extends Schakelaars {
         let output = this.toHTMLHeader(mode);
 
         output += "&nbsp;" + this.nrToHtml();
-        output += this.selectPropToHTML('type_schakelaar',["enkelpolig", "dubbelpolig", "driepolig", "dubbelaansteking", "wissel_enkel", "wissel_dubbel", "kruis_enkel", "---", "contact", "dimschakelaar", "dimschakelaar wissel", "bewegingsschakelaar", "schemerschakelaar", "---", "teleruptor", "relais", "dimmer", "tijdschakelaar", "minuterie", "thermostaat", "rolluikschakelaar"]);
+        output += this.selectPropToHTML('type_schakelaar',["enkelpolig", "dubbelpolig", "driepolig", "dubbelaansteking", "wissel_enkel", "wissel_dubbel", "kruis_enkel", "---", "contact", "dimschakelaar", "dimschakelaar wissel", "bewegingsschakelaar", "draaischakelaar", "schemerschakelaar", "---", "teleruptor", "relais", "dimmer", "tijdschakelaar", "minuterie", "thermostaat", "rolluikschakelaar"]);
 
         if (this.kanHalfwaterdichtZijn())       output += ", Halfwaterdicht: " + this.checkboxPropToHTML('is_halfwaterdicht');
         if (this.kanVerklikkerlampjeHebben())   output += ", Verklikkerlampje: " + this.checkboxPropToHTML('heeft_verklikkerlampje');
         if (this.kanSignalisatielampjeHebben()) output += ", Signalisatielampje: " + this.checkboxPropToHTML('heeft_signalisatielampje');
         if (this.kanTrekschakelaarHebben())     output += ", Trekschakelaar: " + this.checkboxPropToHTML('is_trekschakelaar');
+        if (this.kanVertraagdeOpeningHebben())  output += ", Vertraagde opening: " + this.checkboxPropToHTML('vertraagde_opening');
         
         switch (this.props.type_schakelaar) {
             case "enkelpolig":  
@@ -51,7 +52,7 @@ export class Lichtcircuit extends Schakelaars {
                 break;
         }
 
-        output += ", Aantal lichtpunten: " + this.selectPropToHTML('aantal_lichtpunten',["0","1","2","3","4","5","6","7","8","9","10"]);
+        output += ", Aantal lichtpunten: " + this.selectPropToHTML('aantal_lichtpunten',["0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50"]);
         output += ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         output += this.toHTMLFooter();

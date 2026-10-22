@@ -737,6 +737,10 @@ left_col_inner.addEventListener('change', function(event) {
                         if (parent !== null) globalThis.structure.updateHTMLinner(parent.id); else globalThis.structure.updateHTMLinner(my_id);
                     }
                 } else {
+                    if ( (item == "fase") && (value == "Meer...") ) {
+                        const ingave = window.prompt("Geef de fase in (bijvoorbeeld L1-L2, L1/L2/L3 of N):", electroItem.props.fase ?? "");
+                        value = (ingave === null ? (electroItem.props.fase ?? "") : ingave.trim());
+                    }
                     electroItem.props[item] = (value as string);
                     if (isFirefox()) {
                         globalThis.HLRedrawTreeHTML();

@@ -496,6 +496,56 @@ overspanningsbeveiliging_inline: `
 <line x1="0" y1="-10" x2="-3" y2="-6" stroke="black" />
 <line x1="0" y1="-10" x2="3" y2="-6" stroke="black" />
 `,
+draaischakelaar_verticaal: `
+<g transform="rotate(-20)">
+<line x1="0" y1="-26" x2="0" y2="0"  stroke="black" />
+</g>
+<circle cx="0" cy="-30" r="3.5" fill="white" stroke="black" />
+`,
+schakelaar_draai: `
+<line x1="0" y1="0" x2="17" y2="-9" stroke="black" />
+<circle cx="23" cy="0" r="4" fill="white" stroke="black" />
+`,
+detector_kader: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+`,
+rookdetector: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+<path d="M18,-9 C10,-7 10,-2 15,0 S20,7 12,9" fill="none" stroke="black" />
+`,
+gasdetector: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+<polygon points="15,-9 23,7 7,7" fill="none" stroke="black" />
+`,
+manuele_detector: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+<rect x="9" y="-8" width="12" height="9" fill="none" stroke="black" />
+<line x1="15" y1="-11" x2="15" y2="9" stroke="black" />
+`,
+straaldetector: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+<line x1="15" y1="-20" x2="15" y2="20" stroke="black" />
+<polygon points="15,-20 11,-25 19,-25" fill="none" stroke="black" />
+<polygon points="15,20 11,25 19,25" fill="none" stroke="black" />
+`,
+vlamdetector: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+<path d="M15,-9 C8,-7 8,-2 13,0 S18,7 10,9" fill="none" stroke="black" />
+<path d="M21,-9 C14,-7 14,-2 19,0 S24,7 16,9" fill="none" stroke="black" />
+`,
+warmtedetector: `
+<rect x="0" y="-15" width="30" height="30" fill="white" stroke="black" />
+<line x1="11" y1="-9" x2="11" y2="9" stroke="black" />
+<line x1="11" y1="0" x2="21" y2="-9" stroke="black" />
+<line x1="11" y1="0" x2="21" y2="9" stroke="black" />
+`,
+klemmenstrook: `
+<rect x="-25" y="-6" width="50" height="12" fill="white" stroke="black" />
+<line x1="-15" y1="-6" x2="-15" y2="6" stroke="black" />
+<line x1="-5" y1="-6" x2="-5" y2="6" stroke="black" />
+<line x1="5" y1="-6" x2="5" y2="6" stroke="black" />
+<line x1="15" y1="-6" x2="15" y2="6" stroke="black" />
+`,
 zekering_empty: `
 <g transform="rotate(-20)">
 <line x1="0" y1="-30" x2="0" y2="0"  stroke="black" />

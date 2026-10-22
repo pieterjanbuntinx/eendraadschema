@@ -17,10 +17,13 @@ export class Omvormer extends Electro_Item {
         this.props.adres = "";
         this.props.inkring = false;
         this.props.micro = false;
+        this.props.type_ingang = "AC";
+        this.props.type_uitgang = "DC";
+        this.props.details = "Merk: ___|Type: ___|S/N: ___|P: ___kW (DC)|P: ___kW (AC)";
     }
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
-        return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
+        return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Detector", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Modulaire schakelaar", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
     }
 
     getMaxNumChilds(): number {
@@ -32,6 +35,9 @@ export class Omvormer extends Electro_Item {
         if (this.props.tekst == null) this.props.tekst = "";
         if (this.props.inkring == null) this.props.inkring = false;
         if (this.props.micro == null) this.props.micro = false;
+        if (this.props.type_ingang == null) this.props.type_ingang = "AC";
+        if (this.props.type_uitgang == null) this.props.type_uitgang = "DC";
+        if (this.props.details == null) this.props.details = "";
         if ( ((parent = this.getParent()) != null) && (parent.getType() != "Kring") )
             this.props.inkring = false;
         if (this.props.micro && this.getNumChilds() > 1) {
@@ -53,7 +59,10 @@ export class Omvormer extends Electro_Item {
             output += "Micro: " + this.checkboxPropToHTML('micro') + ", ";
         }
         
-        output += "Tekst: " + this.stringPropToHTML('tekst',10) + ", ";
+        output += "Ingang: " + this.selectPropToHTML('type_ingang',["AC","DC"]) + ", ";
+        output += "Uitgang: " + this.selectPropToHTML('type_uitgang',["AC","DC"]) + ", ";
+        output += "Tekst in object: " + this.stringPropToHTML('tekst',10) + ", ";
+        output += 'Tekst onder object (nieuwe lijn = "|"): ' + this.stringPropToHTML('details',20) + ", ";
         output += "Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);
@@ -148,11 +157,25 @@ export class Omvormer extends Electro_Item {
 
         // Symbolen toevoegen voor wisselstroom en gelijkstroom
 
-        mySVG.data += `<use xlink:href="#sinusVerticaal" x="30" y="${5+height/2+rectangleHeight/2-10-10}" />` 
-                   +  `<line x1="66" y1="${12 + (height-rectangleHeight)/2}" x2="66" y2="${27 + (height-rectangleHeight)/2}" stroke="black" stroke-dasharray="3" />` 
-                   +  `<line x1="62" y1="${12 + (height-rectangleHeight)/2}" x2="62" y2="${27 + (height-rectangleHeight)/2}" stroke="black" />`;
+        // Ingang linksonder, uitgang rechtsboven
+        const yonder = 5+height/2+rectangleHeight/2-10-10;   // onderkant van het sinus-symbool linksonder
+        const yboven = 12 + (height-rectangleHeight)/2;      // bovenkant van de symbolen rechtsboven
+        const acSymbool = (x: number, ybottom: number) => `<use xlink:href="#sinusVerticaal" x="${x}" y="${ybottom}" />`;
+        const dcSymbool = (x: number, ytop: number) =>
+              `<line x1="${x+4}" y1="${ytop}" x2="${x+4}" y2="${ytop+15}" stroke="black" stroke-dasharray="3" />`
+            + `<line x1="${x}" y1="${ytop}" x2="${x}" y2="${ytop+15}" stroke="black" />`;
+        mySVG.data += (this.props.type_ingang == "DC" ? dcSymbool(26, yonder-17) : acSymbool(30, yonder));
+        mySVG.data += (this.props.type_uitgang == "AC" ? acSymbool(64, yboven+18) : dcSymbool(62, yboven));
 
         mySVG.data += this.addAddressToSVG(mySVG,height+10,15,(70-mySVG.xright)/2-1);
+
+        // Tekst onder het object
+        const details = this.detailsLinesToSVG(this.props.details, 21, mySVG.yup + mySVG.ydown + 8);
+        if (details.height > 0) {
+            mySVG.data += details.svg;
+            mySVG.ydown += details.height + 8;
+            mySVG.xright = Math.max(mySVG.xright, 21 + details.width);
+        }
 
         return(mySVG);
 

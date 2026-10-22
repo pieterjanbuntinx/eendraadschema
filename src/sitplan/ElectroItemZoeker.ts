@@ -13,7 +13,7 @@ import { Container } from "../List_Item/Container";
 export class ElectroItemZoeker {
 
     private excludedTypes = ['Bord','Kring','Domotica','Domotica module (verticaal)',
-                             'Domotica gestuurde verbruiker','Leiding','Splitsing','Verlenging',
+                             'Domotica gestuurde verbruiker','Leiding','Splitsing','Klemmenstrook','Verlenging',
                              'Vrije ruimte','Meerdere verbruikers'];
 
     private data: {id: number, kringnaam: string, adres: string, type: string}[] = [];

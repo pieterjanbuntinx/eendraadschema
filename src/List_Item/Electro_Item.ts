@@ -1,5 +1,5 @@
 import { List_Item } from "./List_Item";
-import { htmlspecialchars, deepClone } from "../general";
+import { htmlspecialchars, deepClone, svgTextWidth } from "../general";
 import { SVGSymbols } from "../SVGSymbols";
 import { SVGelement } from "../SVGelement";
 import { Hierarchical_List } from "../Hierarchical_List";
@@ -40,7 +40,7 @@ export class Electro_Item extends List_Item {
   // -- Lijst met toegestande kinderen van het Electro_item --
 
   allowedChilds() : Array<string> { 
-      return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
+      return ["", "Aansluiting", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Leiding", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Detector", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Modulaire schakelaar", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
   }
 
   // -- Aantal actieve kinderen van het Electro_item, attributes worden niet geteld --
@@ -235,13 +235,8 @@ export class Electro_Item extends List_Item {
   getnr() {
       let parent:Electro_Item = (this.getParent() as Electro_Item);
       if (parent != null) {
-          switch (parent.getType()) {
-              case "Kring": 
-              case "Domotica module (verticaal)":
-                  return this.props.nr? this.props.nr : "";
-              default: 
-                  return parent.getnr();
-          }
+          if (this.heeftNummerInOuder()) return (this.props.autonr === 'geen' ? "" : (this.props.nr ? this.props.nr : ""));
+          return parent.getnr();
       } else {
           return "";
       };
@@ -271,11 +266,12 @@ export class Electro_Item extends List_Item {
       let str = "";
       let parent:Electro_Item = (this.getParent() as Electro_Item);
       if (parent != null) {
-          if ( (parent.getType() == "Kring") || (parent.getType() == "Domotica module (verticaal)") ) {
-                str += `Nr: ${this.selectPropToHTML('autonr',['auto','manueel'])}`
-                  +  (this.props.autonr === 'auto'
-                  ? `<input type="text" id="HL_edit_${this.id}_nr" size="2" value="${this.props.nr ?? ''}" disabled />`
-                  : this.stringPropToHTML('nr',2)) 
+          if (this.heeftNummerInOuder()) {
+                if (this.props.autonr === 'geen') this.props.nr = "";
+                str += `Nr: ${this.selectPropToHTML('autonr',['auto','manueel','geen'])}`
+                  +  (this.props.autonr === 'manueel'
+                  ? this.stringPropToHTML('nr',2)
+                  : `<input type="text" id="HL_edit_${this.id}_nr" size="2" value="${this.props.nr ?? ''}" disabled />`)
                   + ', ';
           } else {
               this.props.nr = "";
@@ -283,6 +279,42 @@ export class Electro_Item extends List_Item {
       };
       return(str);
   };
+
+  // -- Krijgt dit element een nummer binnen zijn ouder? (kring, verticale domotica module of aftakdoos met genummerde kinderen) --
+
+  heeftNummerInOuder(): boolean {
+      let parent:Electro_Item = (this.getParent() as Electro_Item);
+      if (parent == null) return false;
+      const ptype = parent.getType();
+      if ( (ptype == "Kring") || (ptype == "Domotica module (verticaal)") ) return true;
+      if ( (ptype == "Aftakdoos") && (parent.props.nrKinderen === true) ) return true;
+      return false;
+  }
+
+  // -- Keuzelijst voor de fase, met mogelijkheid om via "Meer..." een eigen waarde in te geven --
+
+  fasePropToHTML(): string {
+      let opties: Array<string> = ["","L1","L2","L3"];
+      const huidig = (this.props.fase ?? "");
+      if (huidig !== "" && !opties.includes(huidig)) opties.push(huidig);
+      opties.push("-");
+      opties.push("Meer...");
+      return this.selectPropToHTML('fase', opties);
+  }
+
+  // -- Tekst onder een object, meerdere lijnen gescheiden door "|" --
+
+  detailsLinesToSVG(tekst: string, x: number, ystart: number, anchor: string = "start", lineheight: number = 11): { svg: string, height: number, width: number } {
+      if (tekst == null || /^\s*$/.test(tekst)) return { svg: "", height: 0, width: 0 };
+      const lijnen = String(tekst).split("|");
+      let svg = "";
+      let width = 0;
+      lijnen.forEach((lijn, i) => {
+          svg += `<text x="${x}" y="${ystart + i*lineheight}" style="text-anchor:${anchor}" font-family="Arial, Helvetica, sans-serif" font-size="10">${htmlspecialchars(lijn)}</text>`;
+          width = Math.max(width, svgTextWidth(htmlspecialchars(lijn),10,''));
+      });
+      return { svg: svg, height: lijnen.length * lineheight, width: width };
+  }
 
   // -- Code to add the addressline below when drawing SVG. This is called by most derived classes --
 

@@ -43,16 +43,20 @@ export class Aansluiting extends Electro_Item {
         this.props.type_kabel_na_teller = "2x16";
         this.props.differentieel_delta_amperage = "300";
         this.props.adres = "";
-        this.props.type_differentieel = "";
-        this.props.curve_automaat = "";
+        this.props.type_differentieel = "A";
+        this.props.curve_automaat = "C";
         this.props.differentieel_is_selectief = false;
-        this.props.kortsluitvermogen = "";
+        this.props.kortsluitvermogen = "3";
         this.props.naam = "";
         this.props.type_kabel_voor_teller = "";
         this.props.huishoudelijk = true;
         this.props.fase = '';
         this.props.normaalGesloten = false;
         this.props.newPage = false;
+        this.props.met_teller = true;
+        this.props.kabel_locatie = "N/A";
+        this.props.kabel_is_in_buis = false;
+        this.props.details = "";
     }
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
@@ -92,6 +96,11 @@ export class Aansluiting extends Electro_Item {
         }
 
         if (typeof(this.props.huishoudelijk) == 'undefined') this.props.huishoudelijk = true;
+        if (typeof(this.props.met_teller) == 'undefined') this.props.met_teller = true;
+        if (this.props.kabel_locatie == null) this.props.kabel_locatie = "N/A";
+        if (this.props.kabel_is_in_buis == null) this.props.kabel_is_in_buis = false;
+        if (this.props.kabel_locatie == "Luchtleiding") this.props.kabel_is_in_buis = false;
+        if (this.props.details == null) this.props.details = "";
         if (!["automatisch", "differentieel", "differentieelautomaat", "smelt"].includes(this.props.bescherming)) this.props.fase = '';
         if (!["automatisch", "differentieel", "differentieelautomaat"].includes(this.props.bescherming)) this.props.kortsluitvermogen = '';
     }
@@ -107,7 +116,12 @@ export class Aansluiting extends Electro_Item {
             output += (typeof nrHtml === "string" ? nrHtml.substring(2) : nrHtml);
         }
         
-        output += "Bescherming: " + this.selectPropToHTML('bescherming',["automatisch","differentieel","differentieelautomaat","smelt","geen","---","contact","zekeringscheider","schemer"]) 
+        output += "Met teller: " + this.checkboxPropToHTML('met_teller')
+               +  ", Kabeltype na teller: " + this.stringPropToHTML('type_kabel_na_teller',10)
+               +  ", Plaatsing: " + this.selectPropToHTML('kabel_locatie',["N/A","Ondergronds","Luchtleiding","In wand","Op wand"]);
+        if (this.props.kabel_locatie != "Luchtleiding") output += ", In buis: " + this.checkboxPropToHTML('kabel_is_in_buis');
+        if (this.props.met_teller) output += ", Kabeltype v&oacute;&oacute;r teller: " + this.stringPropToHTML('type_kabel_voor_teller',10);
+        output += ", Bescherming: " + this.selectPropToHTML('bescherming',["automatisch","differentieel","differentieelautomaat","smelt","geen","---","contact","zekeringscheider","draaischakelaar","schemer"]) 
 
         if (this.props.bescherming != "geen") output += this.selectPropToHTML('aantal_polen',["2","3","4","-","1",""]) + this.stringPropToHTML('amperage',2) + "A";
 
@@ -115,29 +129,29 @@ export class Aansluiting extends Electro_Item {
 
             case "differentieel":
                 output += ", \u0394 " + this.stringPropToHTML('differentieel_delta_amperage',3) + "mA"
-                        +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B"])
+                        +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B","F"])
                         +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
                         +  ", Selectief: " + this.checkboxPropToHTML('differentieel_is_selectief')
-                        +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                        +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "automatisch":
                 output += ", Curve:" + this.selectPropToHTML('curve_automaat',["","B","C","D","U"])
                         +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
-                        +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                        +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "differentieelautomaat":
                 output += ", \u0394 " + this.stringPropToHTML('differentieel_delta_amperage',3) + "mA"
                         +  ", Curve:" + this.selectPropToHTML('curve_automaat',["","B","C","D","U"])
-                        +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B"])
+                        +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B","F"])
                         +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
                         +  ", Selectief: " + this.checkboxPropToHTML('differentieel_is_selectief')
-                        +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                        +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "smelt":
-                output += ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                output += ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "contact":
@@ -147,8 +161,6 @@ export class Aansluiting extends Electro_Item {
 
         }
 
-        output += ", Kabeltype na teller: " + this.stringPropToHTML('type_kabel_na_teller',10)
-               +  ", Kabeltype v&oacute;&oacute;r teller: " + this.stringPropToHTML('type_kabel_voor_teller',10);
 
         if ((this.props.kortsluitvermogen != '') && (['differentieel','automatisch','differentieelautomaat'].includes(this.props.bescherming))) {
             output += ", Huishoudelijke installatie: " + this.checkboxPropToHTML('huishoudelijk');
@@ -163,16 +175,45 @@ export class Aansluiting extends Electro_Item {
             }
         }
 
+        if (this.props.met_teller) output += ', Tekst onder object (nieuwe lijn = "|"): ' + this.stringPropToHTML('details',20);
         output += ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);
+    }
+
+    // -- Kleine symbolen op de horizontale leiding na de teller (in buis, luchtleiding, ondergronds, in/op wand) --
+
+    kabelLocatieHorizontaalSVG(x: number, y: number): string {
+        let s = "";
+        if (this.props.kabel_locatie == "Luchtleiding") {
+            s += `<circle cx="${x}" cy="${y}" r="4" style="stroke:black;fill:none" />`;
+        } else if (this.props.kabel_is_in_buis) {
+            s += `<circle cx="${x}" cy="${y-10}" r="4" style="stroke:black;fill:none" />`;
+        }
+        const x2 = x + 14;
+        switch (this.props.kabel_locatie) {
+            case "Ondergronds":
+                s += `<line x1="${x2}" x2="${x2+20}" y1="${y-13}" y2="${y-13}" stroke="black" />`
+                  +  `<line x1="${x2+2}" x2="${x2+18}" y1="${y-10}" y2="${y-10}" stroke="black" />`
+                  +  `<line x1="${x2+4}" x2="${x2+16}" y1="${y-7}" y2="${y-7}" stroke="black" />`;
+                break;
+            case "In wand":
+                s += `<line x1="${x2}" x2="${x2+20}" y1="${y-15}" y2="${y-15}" stroke="black" />`;
+                for (const dx of [0,10,20]) s += `<line x1="${x2+dx}" x2="${x2+dx}" y1="${y-15}" y2="${y-5}" stroke="black" />`;
+                break;
+            case "Op wand":
+                s += `<line x1="${x2}" x2="${x2+20}" y1="${y-5}" y2="${y-5}" stroke="black" />`;
+                for (const dx of [0,10,20]) s += `<line x1="${x2+dx}" x2="${x2+dx}" y1="${y-15}" y2="${y-5}" stroke="black" />`;
+                break;
+        }
+        return s;
     }
 
     toSVG(sitplan = false): SVGelement {
 
         let addFase = (startNumlines:number, mySVG:SVGelement): number => {
             let numlines = startNumlines;
-            if (['L1','L2','L3'].includes(this.props.fase)) {
+            if (trimString(this.props.fase ?? '') !== '') {
                 numlines = numlines + ((this.props.huishoudelijk && this.props.kortsluitvermogen != '') ? 1.3 : 1.0);
                 mySVG.data += "<text x=\"" + (mySVG.xleft+15+11*(numlines-1)) + "\" y=\"" + (mySVG.yup-10) + "\"" 
                         +  " transform=\"rotate(-90 " + (mySVG.xleft+15+11*(numlines-1)) + "," + (mySVG.yup-10) + ")" 
@@ -207,6 +248,7 @@ export class Aansluiting extends Electro_Item {
         SVGSymbols.addSymbol('zekering_empty');
         SVGSymbols.addSymbol('zekering_smelt');
         SVGSymbols.addSymbol('zekeringscheider');
+        SVGSymbols.addSymbol('draaischakelaar_verticaal');
         SVGSymbols.addSymbol('arrow');
         SVGSymbols.addSymbol('elektriciteitsmeter');
 
@@ -229,7 +271,8 @@ export class Aansluiting extends Electro_Item {
 
         // Indien er een kabeltype vóór de teller is schuiven we alles op
         let extrashift = 0;
-        if (this.props.type_kabel_voor_teller != "") extrashift += 50;
+        const metTeller = (this.props.met_teller !== false);
+        if (metTeller && this.props.type_kabel_voor_teller != "") extrashift += 50;
 
         // get image of the entire stack, make sure it is shifted to the right sufficiently so-that the counter can be added below
         mySVG = this.sourcelist.toSVG(this.id, "vertical", 150 + extrashift); //shift 150 to the right
@@ -317,7 +360,7 @@ export class Aansluiting extends Electro_Item {
                            +  aantalpolenamperagestr + "</text>";
 
                 // Code om het type toe te voegen
-                if ( (this.props.type_differentieel=='A') || (this.props.type_differentieel=='B') ) {
+                if ( ['A','B','F'].includes(this.props.type_differentieel) ) {
                     ++numlines;
                     mySVG.data += "<text x=\"" + (mySVG.xleft+15+11*(numlines-1)) + "\" y=\"" + (mySVG.yup-10) + "\"" 
                                + " transform=\"rotate(-90 " + (mySVG.xleft+15+11*(numlines-1)) + "," + (mySVG.yup-10) + ")" 
@@ -387,7 +430,7 @@ export class Aansluiting extends Electro_Item {
                 }
 
                 // Code om het type toe te voegen
-                if ( (this.props.type_differentieel=='A') || (this.props.type_differentieel=='B') ) {
+                if ( ['A','B','F'].includes(this.props.type_differentieel) ) {
                     ++numlines;
                     mySVG.data += "<text x=\"" + (mySVG.xleft+15+11*(numlines-1)) + "\" y=\"" + (mySVG.yup-10) + "\"" 
                                +  " transform=\"rotate(-90 " + (mySVG.xleft+15+11*(numlines-1)) + "," + (mySVG.yup-10) + ")" 
@@ -441,6 +484,17 @@ export class Aansluiting extends Electro_Item {
 
                 break;
 
+            case "draaischakelaar":
+
+                mySVG.yup += 30;  // Hoeveel ruimte moeten we onderaan voorzien voor de schakelaar
+
+                mySVG.data += '<use xlink:href="#draaischakelaar_verticaal" x=\"' + mySVG.xleft + '" y="' + mySVG.yup + '" />'
+                        +  "<text x=\"" + (mySVG.xleft+15) + "\" y=\"" + (mySVG.yup-10) + "\"" 
+                        +  " transform=\"rotate(-90 " + (mySVG.xleft+15) + "," + (mySVG.yup-10) + ")" 
+                        +  "\" style=\"text-anchor:middle\" font-family=\"Arial, Helvetica, sans-serif\" font-size=\"10\">" 
+                        +  aantalpolenamperagestr + "</text>";
+                break;
+
             case "schemer":
 
                 mySVG.yup += 30;  // Hoeveel ruimte moeten we onderaan voorzien voor de zekering
@@ -478,31 +532,51 @@ export class Aansluiting extends Electro_Item {
                 break;
         }
 
-        // Leiding helemaal links onderaan vóór de teller
-        mySVG.data += '<line x1="1" ' + 'y1="' + (mySVG.yup+25) + '" x2="' + (21+extrashift)  + '" '+ 'y2="' + (mySVG.yup+25) + '" stroke="black"></line>';
+        const ylijn = mySVG.yup+25;
+        let tellerEindX = 21+extrashift; // x waar de leiding na de teller start
 
-        // Kabeltype en tekst links onderaan vóór de teller
-        if (this.props.type_kabel_voor_teller != "") {
-            mySVG.data += '<text x="55" y="' + (mySVG.yup+40) 
-                       + '" style="text-anchor:end" font-family="Arial, Helvetica, sans-serif" font-size="10">' 
-                       + htmlspecialchars(this.props.type_kabel_voor_teller) + '</text>';
-        }        
+        if (metTeller) {
+            // Leiding helemaal links onderaan vóór de teller
+            mySVG.data += '<line x1="1" ' + 'y1="' + ylijn + '" x2="' + (21+extrashift)  + '" '+ 'y2="' + ylijn + '" stroke="black"></line>';
 
-        // De teller
-        mySVG.data += '<use xlink:href="#elektriciteitsmeter" x="' + (21+extrashift) + '" y="' + (mySVG.yup+25) + '"></use>';
+            // Kabeltype en tekst links onderaan vóór de teller
+            if (this.props.type_kabel_voor_teller != "") {
+                mySVG.data += '<text x="55" y="' + (mySVG.yup+40) 
+                           + '" style="text-anchor:end" font-family="Arial, Helvetica, sans-serif" font-size="10">' 
+                           + htmlspecialchars(this.props.type_kabel_voor_teller) + '</text>';
+            }        
+
+            // De teller
+            mySVG.data += '<use xlink:href="#elektriciteitsmeter" x="' + (21+extrashift) + '" y="' + ylijn + '"></use>';
+            tellerEindX = 61+extrashift;
+        } else {
+            tellerEindX = 1;
+        }
 
         // Leiding rechts onderaan na de teller
-        mySVG.data += '<line x1="' + (61+extrashift) + '" ' + 'y1="' + (mySVG.yup+25) + '" x2="' + (mySVG.xleft) + '" '+ 'y2="' + (mySVG.yup+25) + '" stroke="black"></line>'
-        +  '<line x1="' + (mySVG.xleft) + '" y1="' + (mySVG.yup) + '" x2="' + (mySVG.xleft) + '" ' + 'y2="' + (mySVG.yup+25) + '" stroke="black"></line>';
+        mySVG.data += '<line x1="' + tellerEindX + '" ' + 'y1="' + ylijn + '" x2="' + (mySVG.xleft) + '" '+ 'y2="' + ylijn + '" stroke="black"></line>'
+        +  '<line x1="' + (mySVG.xleft) + '" y1="' + (mySVG.yup) + '" x2="' + (mySVG.xleft) + '" ' + 'y2="' + ylijn + '" stroke="black"></line>';
+
+        // Symbolen voor de plaatsing van de kabel na de teller
+        mySVG.data += this.kabelLocatieHorizontaalSVG(tellerEindX + 12, ylijn);
 
         // Kabeltype en tekst rechts onderaan na de teller
-        mySVG.data += '<text x="' + (85+extrashift) + '" y="' + (mySVG.yup+40) 
+        mySVG.data += '<text x="' + (tellerEindX+24) + '" y="' + (mySVG.yup+40) 
                    + '" style="text-anchor:left" font-family="Arial, Helvetica, sans-serif" font-size="10">' 
                    + htmlspecialchars(this.props.type_kabel_na_teller) + '</text>';
 
         // 25 extra pixels voorzien onderaan zodat de teller nooit in de tekening daaronder loopt
         mySVG.yup += 25;
         mySVG.ydown = 25;
+
+        // Tekst onder de teller (meerdere lijnen gescheiden door "|")
+        if (metTeller) {
+            const details = this.detailsLinesToSVG(this.props.details, 21+extrashift, mySVG.yup+mySVG.ydown+10);
+            if (details.height > 0) {
+                mySVG.data += details.svg;
+                mySVG.ydown += details.height + 2;
+            }
+        }
 
         // Indien adres niet leeg is, plaats het onderaan
         if (!(/^\s*$/.test(this.props.adres))) { //check if adres contains only white space

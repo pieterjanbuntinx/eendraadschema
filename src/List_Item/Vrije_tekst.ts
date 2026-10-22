@@ -28,12 +28,16 @@ export class Vrije_tekst extends Electro_Item {
         this.props.is_vet = false;
         this.props.is_cursief = false;
         this.props.adres = "";
+        this.props.kader_type = "volle lijn";
+        this.props.kader_geometrie = "rechthoek";
     }    
 
     overrideKeys() {
-        if (this.props.vrije_tekst_type != "verbruiker") { this.props.vrije_tekst_type = "zonder kader"; }
+        if (!["verbruiker","aangepast"].includes(this.props.vrije_tekst_type)) { this.props.vrije_tekst_type = "zonder kader"; }
+        if (this.props.kader_type == null) this.props.kader_type = "volle lijn";
+        if (this.props.kader_geometrie == null) this.props.kader_geometrie = "rechthoek";
         if (this.props.heeft_automatische_breedte != "automatisch") { this.props.heeft_automatische_breedte = "handmatig"; }
-        if (this.heeftVerbruikerAlsKind()) { this.props.vrije_tekst_type = "verbruiker"; }
+        if (this.heeftVerbruikerAlsKind() && (this.props.vrije_tekst_type == "zonder kader")) { this.props.vrije_tekst_type = "verbruiker"; }
         this.adjustTextWidthIfAuto();
     }
 
@@ -50,7 +54,12 @@ export class Vrije_tekst extends Electro_Item {
         output += ", Vet: " + this.checkboxPropToHTML('is_vet')
                +  ", Cursief: " + this.checkboxPropToHTML('is_cursief')
                +  ", Horizontale alignering: " + this.selectPropToHTML('horizontale_uitlijning',["links","centreer","rechts"])
-               +  ", Type: " + this.selectPropToHTML('vrije_tekst_type',(this.heeftVerbruikerAlsKind() ? ["verbruiker"] : ["verbruiker","zonder kader"]));
+               +  ", Kader: " + this.selectPropToHTML('vrije_tekst_type',(this.heeftVerbruikerAlsKind() ? ["verbruiker","aangepast"] : ["verbruiker","zonder kader","aangepast"]));
+
+        if (this.props.vrije_tekst_type == "aangepast") {
+            output += ", Kadertype: " + this.selectPropToHTML('kader_type',["volle lijn","stippellijn","dikke lijn"])
+                   +  ", Kadergeometrie: " + this.selectPropToHTML('kader_geometrie',["rechthoek","afgeronde hoeken","ellips"]);
+        }
                
         if (this.props.vrije_tekst_type != "zonder kader") output += ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
@@ -114,6 +123,22 @@ export class Vrije_tekst extends Electro_Item {
         // Kader en adres tekenen --
         switch (this.props.vrije_tekst_type) {
             case "zonder kader": break;
+            case "aangepast": {
+                let stijl = 'fill="none" stroke="black"';
+                if (this.props.kader_type == "stippellijn") stijl += ' stroke-dasharray="4,3"';
+                if (this.props.kader_type == "dikke lijn") stijl += ' stroke-width="2"';
+                const h = 40 + extraplace;
+                let kader = "";
+                switch (this.props.kader_geometrie) {
+                    case "afgeronde hoeken": kader = `<rect x="21" y="5" rx="8" ry="8" width="${width}" height="${h}" ${stijl} />`; break;
+                    case "ellips":           kader = `<ellipse cx="${21+width/2}" cy="${5+h/2}" rx="${width/2}" ry="${h/2}" ${stijl} />`; break;
+                    default:                 kader = `<rect x="21" y="5" width="${width}" height="${h}" ${stijl} />`; break;
+                }
+                mySVG.data += (sitplan? "" : '<line x1="1" y1="' + (25 + extraplace/2.0) + '" x2="21" y2="' + (25 + extraplace/2.0) + '" stroke="black" />')
+                           + kader
+                           + this.addAddressToSVG(mySVG,60+extraplace,15,width/2-(mySVG.xright-20)/2);
+                break;
+            }
             default: //Wegens compatibiliteit met oudere versies van de software is het ontbreken van eender welke parameter een "met kader"
                 mySVG.data += (sitplan? "" : '<line x1="1" y1="' + (25 + extraplace/2.0) + '" x2="21" y2="' + (25 + extraplace/2.0) + '" stroke="black" />')
                            + '<rect x="21" y="5" width="' + width + '" height="' + (40 + extraplace) + '" fill="none" style="stroke:black" />'

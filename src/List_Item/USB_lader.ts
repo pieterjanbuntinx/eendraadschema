@@ -23,7 +23,7 @@ export class USB_lader extends Electro_Item {
         let output = this.toHTMLHeader(mode);
 
         output += "&nbsp;" + this.nrToHtml();
-        output += "Aantal: " + this.selectPropToHTML('aantal',["1","2","3","4","5","6","7","8","9","10"]);
+        output += "Aantal: " + this.selectPropToHTML('aantal',["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20"]);
         output += ", Adres/tekst: " + this.stringPropToHTML('adres',5);
 
         return(output);

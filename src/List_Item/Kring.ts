@@ -46,11 +46,11 @@ export class Kring extends Electro_Item {
         this.props.differentieel_delta_amperage = "300";
         this.props.tekst = "";
         this.props.kabel_locatie = "N/A";
-        this.props.type_differentieel = "";
-        this.props.curve_automaat = "";
+        this.props.type_differentieel = "A";
+        this.props.curve_automaat = "C";
         this.props.kabel_is_in_buis = false;
         this.props.differentieel_is_selectief = false;
-        this.props.kortsluitvermogen = "";
+        this.props.kortsluitvermogen = "3";
         this.props.huishoudelijk = true;
         this.props.fase = '';
         this.props.normaalGesloten = false;
@@ -70,6 +70,7 @@ export class Kring extends Electro_Item {
                 this.props.kabel_is_aanwezig = true;         // wel een kabel na bord
                 break;
             case "Splitsing":
+            case "Klemmenstrook":
                 this.props.bescherming = "geen"; // geen zekering per default na splitsing
                 this.props.naam = "";    // We geven de kring geen naam
                 this.props.kabel_is_aanwezig = false; // geen kabel per default na splitsing
@@ -93,7 +94,7 @@ export class Kring extends Electro_Item {
     }
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
-        return ["", "Aansluiting", "Bord", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Kring", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
+        return ["", "Aansluiting", "Bord", "Domotica", "Domotica module (verticaal)", "Domotica gestuurde verbruiker", "Kring", "Klemmenstrook", "Meerdere verbruikers", "Splitsing", "---", "Batterij", "Bel", "Boiler", "Contactdoos", "Detector", "Diepvriezer", "Droogkast", "Drukknop", "Elektriciteitsmeter", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Modulaire schakelaar", "Motor", "Omschakelaar", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zekering/differentieel", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
     }
 
     getMaxNumChilds(): number {
@@ -143,7 +144,7 @@ export class Kring extends Electro_Item {
                   ? `<input type="text" id="HL_edit_${this.id}_naam" size="5" style="font-weight: bold; background-color:#FFFFE0;" value="${this.props.naam ?? ''}" disabled /><br>`
                   : `${this.stringPropToHTML('naam',5)}<br>`);
 
-        output += "Bescherming: " + this.selectPropToHTML('bescherming',["automatisch","differentieel","differentieelautomaat","smelt","geen","---","contact","zekeringscheider","relais","schemer","overspanningsbeveiliging"]);
+        output += "Bescherming: " + this.selectPropToHTML('bescherming',["automatisch","differentieel","differentieelautomaat","smelt","geen","---","contact","draaischakelaar","zekeringscheider","relais","schemer","overspanningsbeveiliging"]);
 
         // Aantal polen en Ampérage
 
@@ -155,29 +156,29 @@ export class Kring extends Electro_Item {
 
             case "differentieel":
                 output += ", \u0394 " + this.stringPropToHTML('differentieel_delta_amperage',3) + "mA"
-                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B"])
+                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B","F"])
                        +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
                        +  ", Selectief: " + this.checkboxPropToHTML('differentieel_is_selectief')
-                       +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                       +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "automatisch":
                 output += ", Curve:" + this.selectPropToHTML('curve_automaat',["","B","C","D","U"])
                        +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
-                       +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                       +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "differentieelautomaat":
                 output += ", \u0394 " + this.stringPropToHTML('differentieel_delta_amperage',3) + "mA"
                        +  ", Curve:" + this.selectPropToHTML('curve_automaat',["","B","C","D","U"])
-                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B"])
+                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B","F"])
                        +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
                        +  ", Selectief: " + this.checkboxPropToHTML('differentieel_is_selectief')
-                       +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                       +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "smelt":
-                output += ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                output += ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "contact":
@@ -222,7 +223,7 @@ export class Kring extends Electro_Item {
 
         let addFase = (startNumlines:number, mySVG:SVGelement): number => {
             let numlines = startNumlines;
-            if (['L1','L2','L3'].includes(this.props.fase)) {
+            if (trimString(this.props.fase ?? '') !== '') {
                 numlines++;;
                 mySVG.data += "<text x=\"" + (mySVG.xleft+15+11*(numlines-1)) + "\" y=\"" + (mySVG.yup-10) + "\"" 
                         +  " transform=\"rotate(-90 " + (mySVG.xleft+15+11*(numlines-1)) + "," + (mySVG.yup-10) + ")" 
@@ -250,6 +251,7 @@ export class Kring extends Electro_Item {
         SVGSymbols.addSymbol('zekering_empty');
         SVGSymbols.addSymbol('zekering_smelt');
         SVGSymbols.addSymbol('zekeringscheider');
+        SVGSymbols.addSymbol('draaischakelaar_verticaal');
         SVGSymbols.addSymbol('overspanningsbeveiliging_inline');
         SVGSymbols.addSymbol('arrow');
         SVGSymbols.addSymbol('relais_kring');
@@ -434,7 +436,7 @@ export class Kring extends Electro_Item {
                            +  aantalpolenamperagestr + "</text>";
 
                 // Code om het type toe te voegen
-                if ( (this.props.type_differentieel=='A') || (this.props.type_differentieel=='B') ) {
+                if ( ['A','B','F'].includes(this.props.type_differentieel) ) {
                     ++numlines;
                     mySVG.data += "<text x=\"" + (mySVG.xleft+15+11*(numlines-1)) + "\" y=\"" + (mySVG.yup-10) + "\"" 
                                + " transform=\"rotate(-90 " + (mySVG.xleft+15+11*(numlines-1)) + "," + (mySVG.yup-10) + ")" 
@@ -499,7 +501,7 @@ export class Kring extends Electro_Item {
                 }
 
                 // Code om het type toe te voegen
-                if ( (this.props.type_differentieel=='A') || (this.props.type_differentieel=='B') ) {
+                if ( ['A','B','F'].includes(this.props.type_differentieel) ) {
                     ++numlines;
                     mySVG.data += "<text x=\"" + (mySVG.xleft+15+11*(numlines-1)) + "\" y=\"" + (mySVG.yup-10) + "\"" 
                                +  " transform=\"rotate(-90 " + (mySVG.xleft+15+11*(numlines-1)) + "," + (mySVG.yup-10) + ")" 
@@ -591,6 +593,26 @@ export class Kring extends Electro_Item {
                 mySVG.xright = Math.max(mySVG.xright,20+11*(numlines-1));
 
                 nameshift = -11; //
+                break;
+
+            case "draaischakelaar":
+
+                numlines = 0 + (trimString(aantalpolenamperagestr) !== '' ? 1 : 0); // Hier houden we het aantal lijnen tekst bij
+
+                mySVG.yup += 30;  // Hoeveel ruimte moeten we onderaan voorzien voor de schakelaar
+
+                mySVG.data += '<use xlink:href="#draaischakelaar_verticaal" x=\"' + mySVG.xleft + '" y="' + mySVG.yup + '" />'
+                           +  "<text x=\"" + (mySVG.xleft+15) + "\" y=\"" + (mySVG.yup-10) + "\"" 
+                           +  " transform=\"rotate(-90 " + (mySVG.xleft+15) + "," + (mySVG.yup-10) + ")" 
+                           +  "\" style=\"text-anchor:middle\" font-family=\"Arial, Helvetica, sans-serif\" font-size=\"10\">" 
+                           +  aantalpolenamperagestr + "</text>";
+
+                // Code om adres to te voegen
+                numlines = addAdres.bind(this)(numlines, mySVG);
+
+                // Genoeg plaats voorzien aan de rechterkant en eindigen
+                mySVG.xright = Math.max(mySVG.xright,20+11*(numlines-1));
+
                 break;
 
             case "schemer":

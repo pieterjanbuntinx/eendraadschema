@@ -16,6 +16,7 @@ export class Leiding extends Electro_Item {
         this.props.type_kabel = "XVB Cca 3G2,5";
         this.props.kabel_locatie = "N/A";
         this.props.kabel_is_in_buis = false;
+        this.props.tekst = "";
         this.props.adres = "";
     }
 
@@ -31,6 +32,8 @@ export class Leiding extends Electro_Item {
                +  ", Plaatsing: " + this.selectPropToHTML('kabel_locatie',["N/A","Ondergronds","Luchtleiding","In wand","Op wand"]);
         
         if (this.props.kabel_locatie != "Luchtleiding") output += ", In buis: " + this.checkboxPropToHTML('kabel_is_in_buis');
+        if (this.props.tekst == null) this.props.tekst = "";
+        output += ", Tekst: " + this.stringPropToHTML('tekst',10);
 
         return(output);
     }
@@ -90,6 +93,10 @@ export class Leiding extends Electro_Item {
         mySVG.data += '<text x="' + (15) + '" y="' + (39) + '" style="text-anchor:start" font-family="Arial, Helvetica, sans-serif" font-size="10">' 
                        +  htmlspecialchars(this.props.type_kabel) + '</text>';
         
+        if ( (this.props.tekst != null) && !(/^\s*$/.test(this.props.tekst)) ) {
+            mySVG.data += '<text x="' + (width/2) + '" y="' + (10) + '" style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="bold">' 
+                       +  htmlspecialchars(this.props.tekst) + '</text>';
+        }
         mySVG.data += "\n";
 
         return(mySVG);

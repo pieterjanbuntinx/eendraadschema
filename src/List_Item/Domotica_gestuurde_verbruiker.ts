@@ -30,11 +30,11 @@ export class Domotica_gestuurde_verbruiker extends Electro_Item {
     }
 
     allowedChilds() : Array<string> { // returns an array with the type-names of allowed childs
-        return ["", "Batterij", "Bel", "Boiler", "Contactdoos", "Diepvriezer", "Droogkast", "Drukknop", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Motor", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
+        return ["", "Batterij", "Bel", "Boiler", "Contactdoos", "Detector", "Diepvriezer", "Droogkast", "Drukknop", "Elektrische oven", "EV lader", "Ketel", "Koelkast", "Kookfornuis", "Lichtcircuit", "Lichtpunt", "Media", "Microgolfoven", "Modulaire schakelaar", "Motor", "Omvormer", "Overspanningsbeveiliging", "Schakelaars", "Stoomoven", "Transformator", "USB lader", "Vaatwasmachine", "Ventilator", "Verlenging", "Verwarmingstoestel", "Verbruiker", "Vrije tekst", "Warmtepomp/airco", "Wasmachine", "Zonnepaneel", "---", "Aansluitpunt", "Aftakdoos", "Zeldzame symbolen"];
     }
 
     getMaxNumChilds(): number {
-        return 1;
+        return 2; // Kind 1 staat in het kader, kind 2 wordt rechts van het kader getekend
     }
 
     toHTML(mode: string) {
@@ -65,8 +65,9 @@ export class Domotica_gestuurde_verbruiker extends Electro_Item {
 
         // Eerst de tekening van de aangestuurde verbruiker maken
 
-        let childcounter = 0; // Variabele voor het aantal kinderen, op dit moment ondersteunt de tool slechts 1 kind
-                              // Kind 1 is het element dat effectief gestuurd wordt.                
+        let childcounter = 0; // Kind 1 is het element dat effectief gestuurd wordt en staat in het kader.
+                              // Kind 2 (optioneel) wordt rechts van het kader getekend.
+        let tweedeKindId: number | null = null;
 
         for (let i = 0; i<this.sourcelist.length; i++) {
             if ( this.isActief() && (this.sourcelist.data[i].parent == this.id ) 
@@ -76,6 +77,9 @@ export class Domotica_gestuurde_verbruiker extends Electro_Item {
                     case 1: // Het Kind is het eerste element, i.e. de aangestuurde verbruiker. We tekenen dit kind.
                         mySVG = this.sourcelist.toSVG(this.sourcelist.data[i].id,"horizontal",35,true);
                         break;      
+                    case 2:
+                        tweedeKindId = this.sourcelist.data[i].id;
+                        break;
                 }
             }
         }
@@ -126,6 +130,19 @@ export class Domotica_gestuurde_verbruiker extends Electro_Item {
                                + '<line x1="78" y1="21" x2="78" y2="25" stroke="black" />';
                     mySVG.yup += 20;
             }
+        }
+
+        // Tweede kind rechts van het kader tekenen
+        if ( (tweedeKindId !== null) && (sitplan == false) ) {
+            const k2 = this.sourcelist.toSVG(tweedeKindId, "horizontal", 0, true);
+            const xstart = mySVG.xleft + mySVG.xright;
+            const yup = Math.max(mySVG.yup, k2.yup);
+            const dy = yup - mySVG.yup;
+            mySVG.data = `<svg x="0" y="${dy}">${mySVG.data}</svg>`
+                       + `<svg x="${xstart - k2.xleft + 1}" y="${yup - k2.yup}">${k2.data}</svg>`;
+            mySVG.ydown = Math.max(mySVG.ydown + 0, k2.ydown) ;
+            mySVG.yup = yup;
+            mySVG.xright = mySVG.xright + k2.xleft + k2.xright;
         }
 
         //Place text below if there is any

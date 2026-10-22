@@ -1,5 +1,5 @@
 import { Electro_Item } from "./Electro_Item";
-import { htmlspecialchars, svgTextWidth, parseLocaleFloat } from "../general";
+import { htmlspecialchars, svgTextWidth, parseLocaleFloat, trimString } from "../general";
 import { SVGelement } from "../SVGelement";
 import { SVGSymbols } from "../SVGSymbols";
 
@@ -15,10 +15,10 @@ export class Zekering extends Electro_Item {
         this.props.bescherming = "automatisch";
         this.props.amperage = "20";
         this.props.differentieel_delta_amperage = "300";
-        this.props.type_differentieel = "";
-        this.props.curve_automaat = "";
+        this.props.type_differentieel = "A";
+        this.props.curve_automaat = "C";
         this.props.differentieel_is_selectief = false;
-        this.props.kortsluitvermogen = "";
+        this.props.kortsluitvermogen = "3";
         this.props.huishoudelijk = true;
         this.props.fase = '';
         this.props.newPage = false;
@@ -64,29 +64,29 @@ export class Zekering extends Electro_Item {
 
             case "differentieel":
                 output += ", \u0394 " + this.stringPropToHTML('differentieel_delta_amperage',3) + "mA"
-                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B"])
+                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B","F"])
                        +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
                        +  ", Selectief: " + this.checkboxPropToHTML('differentieel_is_selectief')
-                       +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                       +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "automatisch":
                 output += ", Curve:" + this.selectPropToHTML('curve_automaat',["","B","C","D","U"])
                        +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
-                       +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);           
+                       +  ", Fase: " + this.fasePropToHTML();           
                 break;
 
             case "differentieelautomaat":
                 output += ", \u0394 " + this.stringPropToHTML('differentieel_delta_amperage',3) + "mA"
                        +  ", Curve:" + this.selectPropToHTML('curve_automaat',["","B","C","D","U"])
-                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B"])
+                       +  ", Type:" + this.selectPropToHTML('type_differentieel',["","A","B","F"])
                        +  ", Kortsluitstroom: " + this.stringPropToHTML('kortsluitvermogen',3) + "kA"
                        +  ", Selectief: " + this.checkboxPropToHTML('differentieel_is_selectief')
-                       +  ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                       +  ", Fase: " + this.fasePropToHTML();
                 break;
 
             case "smelt":
-                output += ", Fase: " + this.selectPropToHTML('fase',["","L1","L2","L3"]);
+                output += ", Fase: " + this.fasePropToHTML();
                 break;
 
         }
@@ -111,7 +111,7 @@ export class Zekering extends Electro_Item {
 
         let addFase = (startNumlines:number, mySVG:SVGelement): number => {
             let numlines = startNumlines;
-            if (['L1','L2','L3'].includes(this.props.fase)) {
+            if (trimString(this.props.fase ?? '') !== '') {
                 numlines = numlines + ((this.props.huishoudelijk && this.props.kortsluitvermogen != '') ? 1.3 : 1.0);
                 mySVG.data += '<text x="' + (21+10+(this.props.bescherming == 'smelt' ? 4 : 0)) + '" y="' + (25+15+(numlines-1)*11) + '" ' 
                         +  'style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">' 
@@ -188,7 +188,7 @@ export class Zekering extends Electro_Item {
                            +  htmlspecialchars(this.props.aantal_polen + "P - " + this.props.amperage + "A") + '</text>';
 
                 // Code om het type toe te voegen
-                if ( (this.props.type_differentieel=='A') || (this.props.type_differentieel=='B') ) {
+                if ( ['A','B','F'].includes(this.props.type_differentieel) ) {
                     ++numlines;
                     mySVG.data += '<text x="' + (21+10) + '" y="' + (25+15+(numlines-1)*11) + '" ' 
                                +  'style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">'
@@ -240,7 +240,7 @@ export class Zekering extends Electro_Item {
                 }
 
                 // Code om het type toe te voegen
-                if ( (this.props.type_differentieel=='A') || (this.props.type_differentieel=='B') ) {
+                if ( ['A','B','F'].includes(this.props.type_differentieel) ) {
                     ++numlines;
                     mySVG.data += '<text x="' + (21+10) + '" y="' + (25+15+(numlines-1)*11) + '" ' 
                                +  'style="text-anchor:middle" font-family="Arial, Helvetica, sans-serif" font-size="10">'
