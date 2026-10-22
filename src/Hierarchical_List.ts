@@ -148,7 +148,10 @@ export class Hierarchical_List {
     mode: string; //can be "edit" or "move"
     sitplan: SituationPlan;
     sitplanjson: any; //this is where we store the situation plan in plan object exporting to json
-    sitplanview: SituationPlanView;
+    // moving_id en sitplanview krijgen een beginwaarde zodat de volgorde van de velden in een bewaard bestand
+    // dezelfde is als in de originele versie (moving_id wordt zelf niet gebruikt en blijft null)
+    moving_id: number | null = null;
+    sitplanview: SituationPlanView = null;
     currentView: string = ""; // Here we store '2col' | 'config' | 'draw'
     
     // -- Hash table for efficient ID to ordinal lookups --
@@ -1428,7 +1431,7 @@ export class Hierarchical_List {
         let swap3:SituationPlanView = this.sitplanview;
         let swap4:string = this.properties.currentView;
         
-        this.print_table.pagemarkers = null;
+        // De paginamarkeringen worden mee bewaard, zoals in de originele versie
         if (this.sitplan != null) this.sitplanjson = this.sitplan.toJsonObject();
         this.sitplan = null;
         this.sitplanview = null;

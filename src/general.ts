@@ -45,7 +45,9 @@ export const svgTextWidth = (() => {
     }
 
     const div = document.createElement('div');
-    div.innerHTML = `<svg width="1000" height="20"><text x="0" y="10" style="text-anchor:start" font-family="Arial, Helvetica, sans-serif" font-size="${fontsize}" ${options}>${input}</text></svg>`;
+    // Meten gebeurt met het lettertype van de pagina (Verdana), zoals in de originele versie. Verdana is iets breder dan
+    // Arial, waardoor er steeds voldoende ruimte voorzien wordt en de berekende breedtes in het bestand identiek zijn.
+    div.innerHTML = `<svg width="1000" height="20"><text x="0" y="10" style="text-anchor:start" font-family="Verdana, Geneva, Tahoma, sans-serif" font-size="${fontsize}" ${options}>${input}</text></svg>`;
 
     document.body.appendChild(div);
     const width = (div.children[0].children[0] as SVGGraphicsElement).getBBox().width;
