@@ -1622,6 +1622,14 @@ export class SituationPlanView {
                 </center>
             </div>`;
 
+        // -- Eéndraadschema in een apart venster --
+
+        outputright += `
+            <div class="icon" onclick="openInNieuwVenster('2col')" title="Open het ééndraadschema in een apart venster. Wijzigingen worden in beide vensters bijgewerkt.">
+                <span class="icon-image" style="font-size: 24px;">🗗</span>
+                <span class="icon-text">Eéndraadschema<br>apart venster</span>
+            </div>`;
+
         // -- Visuals om pagina te zoomen --
 
         outputright += `

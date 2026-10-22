@@ -22,6 +22,7 @@ import { MultiLevelStorage } from "./storage/MultiLevelStorage";
 import { undoRedo } from "./undoRedo";
 import { importExportUsingFileAPI } from "./importExport/importExport";
 import { changelog } from "./changelog";
+import { startVensterSync, gevraagdeWeergave, haalStatusOp, openInNieuwVenster } from "./VensterSync";
 import { boomToolbarHTML, compactPaneelHTML, installeerKolomScheiding } from "./TreeUI";
 
 import "../css/all.css";
@@ -367,6 +368,11 @@ globalThis.HLRedrawTreeHTML = () => {
     const left_col_inner = document.getElementById("left_col_inner");
     if (left_col_inner !== null) left_col_inner.innerHTML = output;
     installeerKolomScheiding();
+    if (bewaardeScroll.links != null) {
+        const l = document.getElementById("left_col");
+        if (l != null) l.scrollTop = bewaardeScroll.links;
+        bewaardeScroll.links = null;
+    }
 }
 
 globalThis.HLRedrawTreeHTMLLight = () => {
@@ -388,6 +394,11 @@ globalThis.HLRedrawTreeSVG = () => {
 
     const right_col_inner = document.getElementById("right_col_inner");
     if (right_col_inner != null) right_col_inner.innerHTML = str;
+    if (bewaardeScroll.rechts != null) {
+        const r = document.getElementById("right_col");
+        if (r != null) { r.scrollTop = bewaardeScroll.rechts; r.scrollLeft = bewaardeScroll.rechtsX ?? 0; }
+        bewaardeScroll.rechts = null; bewaardeScroll.rechtsX = null;
+    }
 }
 
 globalThis.HLRedrawTree = () => {
@@ -525,11 +536,23 @@ function restart_all() {
     }
 }
 
+const bewaardeScroll: { links: number|null, rechts: number|null, rechtsX: number|null } = { links: null, rechts: null, rechtsX: null };
+
 globalThis.toggleAppView = (type: '2col' | 'config' | 'draw') => {
     let lastview = globalThis.structure.properties.currentView;
     if ((globalThis.structure.sitplanview != null) && (globalThis.structure.sitplanview.contextMenu != null)) globalThis.structure.sitplanview.contextMenu.hide();
     
     globalThis.structure.properties.currentView = type;
+
+    // Scrollpositie van het ééndraadschema bewaren wanneer we ernaar terugkeren
+    if ((lastview === '2col') && (type !== '2col')) {
+        const c2 = document.getElementById("canvas_2col");
+        if ((c2 != null) && (c2.style.display !== 'none')) {
+            bewaardeScroll.links = document.getElementById("left_col")?.scrollTop ?? null;
+            bewaardeScroll.rechts = document.getElementById("right_col")?.scrollTop ?? null;
+            bewaardeScroll.rechtsX = document.getElementById("right_col")?.scrollLeft ?? null;
+        }
+    }
 
     const configsection = document.getElementById("configsection");
     const outerdiv = document.getElementById("outerdiv");
@@ -613,6 +636,8 @@ globalThis.load_example = (nr: number) => {
             break;
     }
 }
+
+globalThis.openInNieuwVenster = openInNieuwVenster;
 
 globalThis.undoClicked = () => {
     if ((globalThis.structure.sitplanview != null) && (globalThis.structure.sitplanview.contextMenu != null)) globalThis.structure.sitplanview.contextMenu.hide();
@@ -819,10 +844,24 @@ let recoveryAvailable = false
 let lastSavedStr:string|null = null;
 let lastSavedInfo:any = null;
 
+startVensterSync();
+
 (async () => {   
     [lastSavedStr, lastSavedInfo] = await globalThis.autoSaver.loadLastSaved();
     if ((lastSavedStr != null) /* && (lastSavedInfo.recovery == true) */ ) recoveryAvailable = true;
-})().then(() => {
+})().then(async () => {
+    const weergave = gevraagdeWeergave();
+    if (weergave != null) {
+        // Gekoppeld venster: neem het schema over van het venster dat ons opende (of anders uit de browsercache)
+        const ontvangen = await haalStatusOp();
+        if (!ontvangen) {
+            if (lastSavedStr != null) EDStoStructure(lastSavedStr, true, true);
+        }
+        document.title = (weergave === 'draw' ? 'Situatieschema' : 'Eéndraadschema') + ' (gekoppeld venster)';
+        globalThis.topMenu.selectMenuItemByName(weergave === 'draw' ? 'Situatieschema' : 'Eéndraadschema');
+        globalThis.autoSaver.start();
+        return;
+    }
     if (!recoveryAvailable) {
         EDStoStructure(globalThis.EXAMPLE_DEFAULT,false);
         restart_all();

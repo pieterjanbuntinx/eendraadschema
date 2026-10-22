@@ -773,6 +773,12 @@ export class Hierarchical_List {
         }
         output += '</p>';
 
+        output += `<span style="display: inline-block; width: 20px;"></span>
+            <div class="icon" onclick="openInNieuwVenster('draw')" title="Open het situatieschema in een apart venster. Wijzigingen worden in beide vensters bijgewerkt.">
+                <span class="icon-image" style="font-size:24px">🗗</span>
+                <span class="icon-text">Situatieschema<br>apart venster</span>
+            </div>`;
+
         if (globalThis.autoSaver && globalThis.autoSaver.hasChangesSinceLastManualSave()) {
             output +=  '<span style="display: inline-block; width: 30px;"></span>';
             output +=  `<div style="margin-top: 5px;margin-bottom: 5px;display: flex; align-items: center; justify-content: center;" class="highlight-warning-big" onclick="exportjson(false)"

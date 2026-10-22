@@ -1,6 +1,7 @@
 import { loadFromText } from "./importExport/importExport";
 import { showSituationPlanPage } from "./sitplan/SituationPlanView";
 import { printsvg } from "./print/print";
+import { meldWijziging } from "./VensterSync";
 
 class jsonStore {
     private maxSteps: number;
@@ -148,6 +149,8 @@ export class undoRedo {
 
         if ( (globalThis.structure.properties.currentView == 'draw') && (globalThis.structure.sitplanview != null) ) globalThis.structure.sitplanview.updateRibbon();
         else if (globalThis.structure.properties.currentView == '2col') globalThis.structure.updateRibbon(); 
+
+        meldWijziging(); // Andere geopende vensters op de hoogte brengen
     }
 
     updateSelectedBoxes() {
@@ -198,6 +201,7 @@ export class undoRedo {
         let optionsString: string | null = this.historyOptions.undo();
         let options: any = optionsString ? JSON.parse(optionsString) : {};
         this.reload(text,options);
+        meldWijziging();
     }
 
     redo() { 
@@ -205,6 +209,7 @@ export class undoRedo {
         let optionsString: string | null = this.historyOptions.redo();
         let options: any = optionsString ? JSON.parse(optionsString) : {};
         this.reload(text,options);
+        meldWijziging();
     }
 
     clear() {
