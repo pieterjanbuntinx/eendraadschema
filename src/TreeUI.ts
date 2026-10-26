@@ -72,9 +72,53 @@ export function typeLabelHTML(item: Electro_Item): string {
     }
     const tekst = (type == null || type === "") ? "Selecteer type &#9656;" : item.getTypeLabel();
     const titel = (TreeUI.verplaatsId !== null) ? "Hang het element hieronder" : "Type kiezen";
-    return `<button class="eds-typelabel" style="${stijl}" title="${titel}" onclick="showElementPicker(event,${item.id})">${tekst}</button>`
-         + `<button class="eds-iconbtn" title="Type kiezen" onclick="showElementPicker(event,${item.id})">&#128269;</button>`
-         + `<button class="eds-iconbtn" title="Meer acties" onclick="showSettings(event,${item.id})">&#8943;</button>`;
+    let html = `<button class="eds-typelabel" style="${stijl}" title="${titel}" onclick="showElementPicker(event,${item.id})">${tekst}</button>`
+             + `<button class="eds-iconbtn" title="Type kiezen" onclick="showElementPicker(event,${item.id})">&#128269;</button>`
+             + `<button class="eds-iconbtn" title="Meer acties" onclick="showSettings(event,${item.id})">&#8943;</button>`;
+    // While an element is being moved ("Elders in schema hangen"), every valid new parent gets a button
+    if (TreeUI.verplaatsId !== null) {
+        if (item.id === TreeUI.verplaatsId) {
+            html += `<span class="eds-moving-tag">wordt verplaatst</span>`;
+        } else if (moveTargetError(item.id) === null) {
+            html += `<button class="eds-hang-btn" title="Hang het element hier onder" onclick="event.stopPropagation(); HLMoveElementTo(${item.id})">&#10549; Hier hangen</button>`;
+        }
+    }
+    return html;
+}
+
+/**
+ * Checks whether the element that is being moved may be placed under newParentId (0 = top level).
+ * Returns null when allowed, otherwise a message explaining why not.
+ */
+export function moveTargetError(newParentId: number): string | null {
+    const structure = globalThis.structure;
+    const id = TreeUI.verplaatsId;
+    if (id === null) return "Er wordt geen element verplaatst.";
+    const item = structure.getElectroItemById(id) as Electro_Item | null;
+    if (item == null) return "Element niet gevonden.";
+    if (newParentId === id) return "Een element kan niet onder zichzelf gehangen worden.";
+
+    if (newParentId === 0) {
+        if (!["", "Aansluiting", "Zekering/differentieel", "Kring"].includes(item.getType()))
+            return `Een "${item.getType()}" kan niet op het bovenste niveau staan.`;
+        return null;
+    }
+
+    // Avoid circular references: the new parent may not be a descendant of the moved element
+    let p = newParentId;
+    while (p !== 0) {
+        const ancestor = structure.getElectroItemById(p);
+        if (ancestor == null) break;
+        if (ancestor.id === id) return "Circulaire referentie. Nieuwe ouder kan geen afstammeling van het te verplaatsen element zijn.";
+        p = ancestor.parent;
+    }
+    const newParent = structure.getElectroItemById(newParentId) as Electro_Item | null;
+    if (newParent == null) return "Nieuwe ouder niet gevonden.";
+    if ((item.getType() !== "") && !newParent.allowedChilds().includes(item.getType()))
+        return `Dat is geen geldig ouder-object. Een "${item.getType()}" kan niet onder een "${newParent.getType()}" hangen.`;
+    if (newParent.getNumChilds() >= newParent.getMaxNumChilds() && item.parent !== newParentId)
+        return `Het maximum aantal kinderen van dit element is ${newParent.getMaxNumChilds()}.`;
+    return null;
 }
 
 export function boomToolbarHTML(): string {
@@ -89,7 +133,7 @@ export function boomToolbarHTML(): string {
     if (TreeUI.verplaatsId !== null) {
         const item = globalThis.structure.getElectroItemById(TreeUI.verplaatsId);
         const naam = item ? item.getTypeLabel() : "";
-        html += `<div class="eds-move-banner">Kies het element waaronder <b>${naam}</b> moet hangen: klik op het type-label van dat element. `
+        html += `<div class="eds-move-banner">Kies waar <b>${naam}</b> moet komen: klik op <b>&#10549; Hier hangen</b> bij het nieuwe bovenliggende element. `
               + `<button onclick="HLMoveElementTo(0)">Bovenste niveau</button> <button onclick="HLCancelMove()">Annuleren</button></div>`;
     }
     return html;
@@ -234,8 +278,10 @@ globalThis.showSettings = (event: MouseEvent, id: number) => {
     }
 
     const acties: Array<[string, () => void]> = [];
+    if (kanOp) acties.push(["&#9206; Helemaal naar boven", () => globalThis.HLMoveTop(id)]);
     if (kanOp) acties.push(["&#9650; Naar boven schuiven", () => globalThis.HLMoveUp(id)]);
     if (kanNeer) acties.push(["&#9660; Naar beneden schuiven", () => globalThis.HLMoveDown(id)]);
+    if (kanNeer) acties.push(["&#9207; Helemaal naar beneden", () => globalThis.HLMoveBottom(id)]);
     acties.push(["&#128279; Elders in schema hangen", () => globalThis.HLMoveElement(id)]);
     if (item.checkInsertSibling()) acties.push(["&#10064; Dupliceren", () => globalThis.HLClone(id)]);
 
@@ -268,31 +314,8 @@ globalThis.HLMoveElementTo = (nieuweOuderId: number) => {
     const item = structure.getElectroItemById(id) as Electro_Item | null;
     if (item == null) { TreeUI.verplaatsId = null; return; }
 
-    if (nieuweOuderId === id) { alert("Een element kan niet onder zichzelf gehangen worden."); return; }
-
-    if (nieuweOuderId !== 0) {
-        // Circulaire referentie vermijden
-        let p = nieuweOuderId;
-        while (p !== 0) {
-            const ouder = structure.getElectroItemById(p);
-            if (ouder == null) break;
-            if (ouder.id === id) { alert("Circulaire referentie. Nieuwe ouder kan geen afstammeling van het te verplaatsen element zijn."); return; }
-            p = ouder.parent;
-        }
-        const nieuweOuder = structure.getElectroItemById(nieuweOuderId) as Electro_Item | null;
-        if (nieuweOuder == null) return;
-        if ((item.getType() !== "") && !nieuweOuder.allowedChilds().includes(item.getType())) {
-            alert(`Dat is geen geldig ouder-object. Een "${item.getType()}" kan niet onder een "${nieuweOuder.getType()}" hangen.`);
-            return;
-        }
-        if (nieuweOuder.getNumChilds() >= nieuweOuder.getMaxNumChilds() && item.parent !== nieuweOuderId) {
-            alert(`Het maximum aantal kinderen van dit element is ${nieuweOuder.getMaxNumChilds()}.`);
-            return;
-        }
-    } else if (!["", "Aansluiting", "Zekering/differentieel", "Kring"].includes(item.getType())) {
-        alert(`Een "${item.getType()}" kan niet op het bovenste niveau staan.`);
-        return;
-    }
+    const error = moveTargetError(nieuweOuderId);
+    if (error !== null) { alert(error); return; }
 
     const ordinal = structure.getOrdinalById(id);
     if (ordinal !== null) structure.data[ordinal].parent = nieuweOuderId;
@@ -302,6 +325,24 @@ globalThis.HLMoveElementTo = (nieuweOuderId: number) => {
     globalThis.undostruct.store();
     globalThis.HLRedrawTree();
 };
+
+/** Moves an element to the first (top) or last (bottom) position among its siblings. */
+function moveToEnd(id: number, top: boolean) {
+    const structure = globalThis.structure;
+    const item = structure.getElectroItemById(id);
+    if (item == null) return;
+    const parent = item.getParent();
+    // Repeat single steps until the position no longer changes (bounded for safety)
+    for (let n = 0; n < structure.length; n++) {
+        const before = structure.getOrdinalById(id);
+        if (top) structure.moveUp(id); else structure.moveDown(id);
+        if (structure.getOrdinalById(id) === before) break;
+    }
+    herteken(parent ? parent.id : null, id);
+}
+
+globalThis.HLMoveTop = (id: number) => moveToEnd(id, true);
+globalThis.HLMoveBottom = (id: number) => moveToEnd(id, false);
 
 globalThis.HLSetTreeView = (weergave: Weergave) => {
     TreeUI.weergave = weergave;

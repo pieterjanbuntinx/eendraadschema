@@ -1,4 +1,5 @@
 export const changelog = [
+  { date: "2026-10-26", msg: "\"Elders in schema hangen\" toont nu een knop \"Hier hangen\" bij elk geldig element. Nieuwe acties \"Helemaal naar boven\" en \"Helemaal naar beneden\" in het ⋯-menu." },
   { date: "2026-10-22", msg: "Printen: keuze liggend/staand voor het ééndraadschema. Situatieschema: kleur instelbaar per symbool (symbool en label). Bestanden worden nu met dezelfde velden en volgorde bewaard als de originele versie; transformator en omschakelaar gelijk getrokken." },
   { date: "2026-10-22", msg: "Situatieschema: vrije tekst plaatsen met meerdere lijnen, lettergrootte, kleur, vet/cursief, uitlijning en optioneel kader en achtergrond." },
   { date: "2026-10-22", msg: "Situatieschema: lijnen, rechthoeken en ellipsen tekenen. Shift = loodrecht/45°, vierkant of cirkel; dubbelklik om lijndikte, kleur, lijnstijl, vulling, afgeronde hoeken en pijlpunten aan te passen." },

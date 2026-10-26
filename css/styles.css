@@ -699,3 +699,8 @@ ul#minitabs li.gekoppeld-balk {
 }
 ul#minitabs li.gekoppeld-balk.verbroken { background: #fff1d6; border-color: #e0b050; color: #6b4a00; }
 ul#minitabs li.gekoppeld-balk a.gekoppeld-sluit { margin-left: 10px; color: inherit; text-decoration: underline; cursor: pointer; font-weight: normal; }
+
+/* -- "Move elsewhere in the schema" mode -- */
+.eds-hang-btn { margin-left: 6px; padding: 2px 8px; background: #2e7d32; color: white; border: 1px solid #1b5e20; border-radius: 4px; cursor: pointer; font-size: 0.9em; }
+.eds-hang-btn:hover { background: #388e3c; }
+.eds-moving-tag { margin-left: 6px; padding: 2px 8px; background: #fff3cd; border: 1px dashed #c9a227; border-radius: 4px; font-size: 0.9em; color: #6b5300; }
