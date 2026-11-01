@@ -110,7 +110,13 @@ export class undoRedo {
     replaceStringStoreBySVGs() {
         if (globalThis.structure.sitplan != null) {
             for (let element of globalThis.structure.sitplan.getElements()) {
-                if (!element.isEendraadschemaSymbool()) element.svg = this.largeStrings.get(parseInt(element.svg));
+                if (element.isEendraadschemaSymbool()) continue;
+                if ((element as any).isVorm && (element as any).isVorm()) {
+                    // Drawn shapes (line, rectangle, ellipse, text) are rebuilt from their parameters
+                    (element as any).zetVorm((element as any).vorm);
+                } else if (/^\d+$/.test(String(element.svg))) {
+                    element.svg = this.largeStrings.get(parseInt(element.svg));
+                }
             }
         }
     }
