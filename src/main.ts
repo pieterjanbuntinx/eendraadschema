@@ -22,6 +22,7 @@ import { MultiLevelStorage } from "./storage/MultiLevelStorage";
 import { undoRedo } from "./undoRedo";
 import { importExportUsingFileAPI } from "./importExport/importExport";
 import { changelog } from "./changelog";
+import { initDesktopIntegration } from "./Desktop";
 import { startVensterSync, gevraagdeWeergave, haalStatusOp, openInNieuwVenster, bijKoppelStatus, hoofdvensterOpen } from "./VensterSync";
 import { boomToolbarHTML, compactPaneelHTML, installeerKolomScheiding } from "./TreeUI";
 
@@ -912,7 +913,7 @@ startVensterSync();
         if (globalThis.structure.sitplan) globalThis.structure.sitplan.activePage = 1;  
     } 
     globalThis.autoSaver.start();    
-});
+}).then(() => initDesktopIntegration()); // Desktop app only: open a .eds file that was double-clicked
 
 
 

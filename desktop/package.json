@@ -1,0 +1,85 @@
+{
+  "name": "eendraadschema-desktop",
+  "productName": "Eendraadschema",
+  "version": "1.0.0",
+  "description": "Eendraadschema as an offline desktop app",
+  "author": "Pieter-Jan Buntinx",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pieterjanbuntinx/eendraadschema.git"
+  },
+  "main": "main.cjs",
+  "private": true,
+  "desktopName": "eendraadschema.desktop",
+  "scripts": {
+    "copy-web": "node scripts/copy-web.mjs",
+    "start": "npm run copy-web && electron .",
+    "dist": "npm run copy-web && electron-builder --publish never",
+    "dist:win": "npm run copy-web && electron-builder --win --publish never",
+    "dist:linux": "npm run copy-web && electron-builder --linux --publish never",
+    "dist:mac": "npm run copy-web && electron-builder --mac --publish never"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "be.peejee.eendraadschema",
+    "productName": "Eendraadschema",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "preload.cjs",
+      "icon.png",
+      "app/**/*"
+    ],
+    "fileAssociations": [
+      {
+        "ext": "eds",
+        "name": "Eendraadschema",
+        "description": "Eendraadschema-bestand",
+        "role": "Editor"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-portable.exe"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Office",
+      "icon": "icon.png",
+      "syncDesktopName": true
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "icon.png"
+    },
+    "publish": null
+  }
+}

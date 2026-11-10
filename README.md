@@ -25,6 +25,26 @@ The "`index.html`"-file will still need all the resources in the root folder so 
 copied into the root-folder to get a working application.
 The default build configuration is only provided as an example.
 
+## Desktop app (offline)
+
+The `desktop/` folder wraps the same build in an [Electron](https://www.electronjs.org/) app that works
+without internet. The web app is served from inside the app through a private `app://` protocol, so
+autosave, undo, linked windows and saving files behave exactly like in a browser.
+Double-clicking a `.eds` file opens it in the app.
+
+Run it locally:
+```
+npm ci && npm run build        # in the repository root
+cd desktop
+npm ci
+npm start                      # start the app
+npm run dist                   # build an installer for the current OS into desktop/release
+```
+
+Installers for Windows, Linux and macOS are built by the "Desktop app" GitHub workflow: run it manually
+from the Actions tab, or push a tag such as `desktop-v1.0.0` to publish them as a GitHub release.
+The installers are not code-signed, so Windows SmartScreen and macOS Gatekeeper will warn the first time.
+
 ## License
 
 See LICENSE.md
