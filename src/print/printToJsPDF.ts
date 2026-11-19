@@ -128,6 +128,11 @@ export function printPDF(
             (canvas as any).crossOrigin = "anonymous";
             const ctx = canvas.getContext("2d");
             if (ctx) {
+                // Paint a white background first: with transparent pixels the PNG gets an alpha mask whose
+                // hidden colour is black, and PDF viewers blend that black into the edges of white areas
+                // (e.g. a floor plan image) when scaling, which shows up as a thin grey border.
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(img, 0, 0);
                 let png: string | null = null;
                 try {
